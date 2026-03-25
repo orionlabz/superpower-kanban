@@ -42,7 +42,7 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "Before stopping, do the following in order:\n1. If any source code (.mjs, .js, .ts, .css, .html) was modified this session, run gitnexus_detect_changes({scope: 'all'}) and briefly report which symbols and execution flows were affected. Flag any unexpected changes.\n2. Generate a 1-2 sentence summary of what was accomplished this session. POST using: curl -s -X POST -H 'Content-Type: application/json' -d '{\"sessionId\": \"<current session id>\", \"summary\": \"<your summary>\"}' http://localhost:37778/api/session-context/finalize.\n3. Then approve stopping.",
+            "prompt": "Before stopping: 1) If source code was modified this session, run gitnexus_detect_changes and briefly report affected symbols. 2) Generate a 1-2 sentence summary and POST it to http://localhost:37778/api/session-context/finalize with JSON body containing sessionId and summary fields. 3) Then approve stopping.",
             "timeout": 60000
           }
         ]

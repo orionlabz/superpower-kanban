@@ -19,3 +19,6 @@ fi
 
 # 3. Fallback: force kill by port
 lsof -ti:37778 | xargs kill -9 2>/dev/null || true
+
+# 4. Clear browser flag so it opens on next session
+rm -f /tmp/task-viewer-browser-opened
