@@ -206,6 +206,10 @@ body {
 .task-detail-status.pending { background: var(--bg-elevated); color: var(--muted); }
 .task-detail-status.in_progress { background: var(--primary-light); color: var(--primary); }
 .task-detail-status.completed { background: var(--success-light); color: var(--success); }
+.task-detail-steps {
+  margin-top: 4px; padding: 4px 0;
+  max-height: 200px; overflow-y: auto;
+}
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(-4px); }

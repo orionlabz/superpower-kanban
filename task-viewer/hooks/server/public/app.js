@@ -3,6 +3,8 @@ let ws = null;
 let reconnectDelay = 1000;
 const MAX_RECONNECT = 30000;
 let currentSessionId = null;
+let currentPlanTasks = []; // plan tasks mapped to kanban format
+let currentClaudeTasks = []; // claude code tasks
 
 // === DOM refs ===
 const $ = (id) => document.getElementById(id);
@@ -49,33 +51,42 @@ function connect() {
 // === Task Handlers ===
 function handleTasks({ tasks, sessionId }) {
   currentSessionId = sessionId;
+  currentClaudeTasks = tasks || [];
   sessionIdEl.textContent = sessionId
     ? `Session: ${sessionId.slice(0, 8)}...`
     : 'No active session';
-
-  if (!sessionId) {
-    kanbanNoSession.classList.remove('hidden');
-    kanbanNoTasks.classList.add('hidden');
-    kanbanEl.classList.add('hidden');
-    return;
-  }
-
-  kanbanNoSession.classList.add('hidden');
-
-  if (tasks.length === 0) {
-    kanbanNoTasks.classList.remove('hidden');
-    kanbanEl.classList.add('hidden');
-    return;
-  }
-
-  kanbanNoTasks.classList.add('hidden');
-  kanbanEl.classList.remove('hidden');
-  renderKanban(tasks);
+  refreshKanban();
 }
 
 function handleSessionChange({ sessionId }) {
   currentSessionId = sessionId;
   sessionIdEl.textContent = `Session: ${sessionId.slice(0, 8)}...`;
+}
+
+function refreshKanban() {
+  // Combine: claude tasks take priority, plan tasks fill the board
+  const allTasks = [...currentClaudeTasks];
+
+  // Add plan tasks mapped to kanban format (if any plans exist)
+  for (const pt of currentPlanTasks) {
+    // Don't duplicate if claude has a task with same subject
+    const isDuplicate = allTasks.some(t =>
+      t.subject && pt.subject && t.subject.toLowerCase().includes(pt.subject.toLowerCase().slice(0, 20))
+    );
+    if (!isDuplicate) allTasks.push(pt);
+  }
+
+  if (allTasks.length === 0) {
+    kanbanNoSession.classList.add('hidden');
+    kanbanNoTasks.classList.remove('hidden');
+    kanbanEl.classList.add('hidden');
+    return;
+  }
+
+  kanbanNoSession.classList.add('hidden');
+  kanbanNoTasks.classList.add('hidden');
+  kanbanEl.classList.remove('hidden');
+  renderKanban(allTasks);
 }
 
 // === Kanban Renderer ===
@@ -125,8 +136,24 @@ function createTaskCard(task, status) {
   html += `<div class="task-detail hidden" data-detail>`;
   html += `<div class="task-detail-label">Status</div>`;
   html += `<div class="task-detail-value"><span class="task-detail-status ${task.status}">${task.status.replace('_', ' ')}</span></div>`;
+
+  // Plan task: show steps as subtasks
+  if (task._planTask && task._planTask.steps.length > 0) {
+    const pt = task._planTask;
+    const done = pt.steps.filter(s => s.done).length;
+    html += `<div class="task-detail-label">Steps (${done}/${pt.steps.length})</div>`;
+    html += `<div class="task-detail-steps">`;
+    for (const step of pt.steps) {
+      html += `<div class="plan-step">
+        <span class="plan-step-check ${step.done ? 'done' : ''}">${step.done ? '\u2713' : ''}</span>
+        <span>${esc(step.title)}</span>
+      </div>`;
+    }
+    html += `</div>`;
+  }
+
   if (task.description) {
-    html += `<div class="task-detail-label">Full Description</div>`;
+    html += `<div class="task-detail-label">Description</div>`;
     html += `<div class="task-detail-value">${esc(task.description)}</div>`;
   }
   if (task.activeForm) {
@@ -165,6 +192,33 @@ function createTaskCard(task, status) {
 
 // === Specs & Plans Renderer ===
 function handleSpecs({ linked }) {
+  // Extract plan tasks for kanban
+  currentPlanTasks = [];
+  if (linked) {
+    for (const item of linked) {
+      if (item.plan && item.plan.tasks) {
+        const planName = item.plan.title;
+        for (const task of item.plan.tasks) {
+          const status = task.progress === 100 ? 'completed'
+            : task.progress > 0 ? 'in_progress' : 'pending';
+          const stepsDone = task.steps.filter(s => s.done).length;
+          const stepsTotal = task.steps.length;
+          currentPlanTasks.push({
+            id: `P${task.id}`,
+            subject: task.title,
+            description: `${planName} — ${stepsDone}/${stepsTotal} steps`,
+            status,
+            activeForm: status === 'in_progress' ? `${task.progress}% complete` : null,
+            _planTask: task, // keep reference for detail rendering
+          });
+        }
+      }
+    }
+  }
+
+  // Refresh kanban with new plan data
+  refreshKanban();
+
   if (!linked || linked.length === 0) {
     specsSection.classList.add('hidden');
     return;
