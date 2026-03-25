@@ -3,7 +3,6 @@ import { createServer } from 'node:http';
 import { WebSocketServer } from 'ws';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import open from 'open';
 import { WatcherManager } from './watchers.mjs';
 import { discoverProjectSessions, loadSessionTasks } from './parsers.mjs';
 import {
@@ -135,15 +134,9 @@ wss.on('connection', async () => {
   await watchers.emitCurrentState();
 });
 
-let browserOpened = false;
-
 server.listen(PORT, () => {
   console.log(`Task Viewer running at http://localhost:${PORT}`);
   console.log(`Watching project: ${PROJECT_CWD}`);
-  if (!browserOpened) {
-    browserOpened = true;
-    open(`http://localhost:${PORT}`).catch(() => {});
-  }
 });
 
 server.on('error', (err) => {

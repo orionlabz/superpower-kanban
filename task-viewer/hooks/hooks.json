@@ -6,20 +6,43 @@
         "hooks": [
           {
             "type": "command",
-            "command": "PROJECT_CWD=\"$PWD\" && HASH=$(echo -n \"$PROJECT_CWD\" | md5 -q 2>/dev/null || echo -n \"$PROJECT_CWD\" | md5sum | cut -d' ' -f1) && cd \"${CLAUDE_PLUGIN_ROOT}/hooks/server\" && ([ -d node_modules ] || npm install --silent) && PROJECT_CWD=\"$PROJECT_CWD\" nohup node server.mjs > /tmp/task-viewer-$HASH.log 2>&1 & echo $! > /tmp/task-viewer-$HASH.pid",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/start-server.sh",
             "timeout": 30000,
             "statusMessage": "Starting Task Viewer..."
+          },
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/request-context.sh",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "TaskUpdate",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/enrich-task.sh",
+            "timeout": 5000
           }
         ]
       }
     ],
     "Stop": [
       {
+        "matcher": "*",
         "hooks": [
           {
+            "type": "prompt",
+            "prompt": "Before stopping, if claude-mem is available, call its timeline tool for a final snapshot. Generate a 1-2 sentence summary of what was accomplished this session. POST using: curl -s -X POST -H 'Content-Type: application/json' -d '{\"sessionId\": \"<current session id>\", \"summary\": \"<your summary>\"}' http://localhost:37778/api/session-context/finalize. Then approve stopping.",
+            "timeout": 30000
+          },
+          {
             "type": "command",
-            "command": "HASH=$(echo -n \"$PWD\" | md5 -q 2>/dev/null || echo -n \"$PWD\" | md5sum | cut -d' ' -f1) && if [ -f /tmp/task-viewer-$HASH.pid ]; then kill $(cat /tmp/task-viewer-$HASH.pid) 2>/dev/null; rm -f /tmp/task-viewer-$HASH.pid; fi",
-            "timeout": 5000,
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/stop-server.sh",
+            "timeout": 10000,
             "statusMessage": "Stopping Task Viewer..."
           }
         ]
