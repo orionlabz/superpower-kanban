@@ -3,7 +3,6 @@ let ws = null;
 let reconnectDelay = 1000;
 const MAX_RECONNECT = 30000;
 let currentSessionId = null;
-let currentPlanTasks = []; // plan tasks mapped to kanban format
 let currentClaudeTasks = []; // claude code tasks
 
 // === DOM refs ===
@@ -14,8 +13,6 @@ const sessionIdEl = $('session-id');
 const kanbanEl = $('kanban');
 const kanbanNoSession = $('kanban-no-session');
 const kanbanNoTasks = $('kanban-no-tasks');
-const specsSection = $('specs-section');
-const specsList = $('specs-list');
 const historyEmpty = $('history-empty');
 const historyList = $('history-list');
 
@@ -41,7 +38,6 @@ function connect() {
     const msg = JSON.parse(e.data);
     switch (msg.type) {
       case 'tasks:update': handleTasks(msg.data); break;
-      case 'specs:update': handleSpecs(msg.data); break;
       case 'session:change': handleSessionChange(msg.data); break;
       case 'heartbeat': break;
     }
@@ -64,19 +60,7 @@ function handleSessionChange({ sessionId }) {
 }
 
 function refreshKanban() {
-  // Combine: claude tasks take priority, plan tasks fill the board
-  const allTasks = [...currentClaudeTasks];
-
-  // Add plan tasks mapped to kanban format (if any plans exist)
-  for (const pt of currentPlanTasks) {
-    // Don't duplicate if claude has a task with same subject
-    const isDuplicate = allTasks.some(t =>
-      t.subject && pt.subject && t.subject.toLowerCase().includes(pt.subject.toLowerCase().slice(0, 20))
-    );
-    if (!isDuplicate) allTasks.push(pt);
-  }
-
-  if (allTasks.length === 0) {
+  if (currentClaudeTasks.length === 0) {
     kanbanNoSession.classList.add('hidden');
     kanbanNoTasks.classList.remove('hidden');
     kanbanEl.classList.add('hidden');
@@ -86,7 +70,7 @@ function refreshKanban() {
   kanbanNoSession.classList.add('hidden');
   kanbanNoTasks.classList.add('hidden');
   kanbanEl.classList.remove('hidden');
-  renderKanban(allTasks);
+  renderKanban(currentClaudeTasks);
 }
 
 // === Kanban Renderer ===
@@ -137,21 +121,6 @@ function createTaskCard(task, status) {
   html += `<div class="task-detail-label">Status</div>`;
   html += `<div class="task-detail-value"><span class="task-detail-status ${task.status}">${task.status.replace('_', ' ')}</span></div>`;
 
-  // Plan task: show steps as subtasks
-  if (task._planTask && task._planTask.steps.length > 0) {
-    const pt = task._planTask;
-    const done = pt.steps.filter(s => s.done).length;
-    html += `<div class="task-detail-label">Steps (${done}/${pt.steps.length})</div>`;
-    html += `<div class="task-detail-steps">`;
-    for (const step of pt.steps) {
-      html += `<div class="plan-step">
-        <span class="plan-step-check ${step.done ? 'done' : ''}">${step.done ? '\u2713' : ''}</span>
-        <span>${esc(step.title)}</span>
-      </div>`;
-    }
-    html += `</div>`;
-  }
-
   if (task.description) {
     html += `<div class="task-detail-label">Description</div>`;
     html += `<div class="task-detail-value">${esc(task.description)}</div>`;
@@ -168,7 +137,18 @@ function createTaskCard(task, status) {
     html += `<div class="task-detail-label">Blocked By</div>`;
     html += `<div class="task-detail-value">${task.blockedBy.map(b => '#' + b).join(', ')}</div>`;
   }
-
+  if (task.owner) {
+    html += `<div class="task-detail-label">Owner</div>`;
+    html += `<div class="task-detail-value">${esc(task.owner)}</div>`;
+  }
+  if (task.metadata && typeof task.metadata === 'object' && Object.keys(task.metadata).length > 0) {
+    html += `<div class="task-detail-label">Metadata</div>`;
+    html += `<div class="task-metadata">`;
+    for (const [key, value] of Object.entries(task.metadata)) {
+      html += `<span class="task-meta-tag"><span class="task-meta-key">${esc(key)}</span>${esc(String(value))}</span>`;
+    }
+    html += `</div>`;
+  }
 
   html += `</div>`;
 
@@ -190,132 +170,6 @@ function createTaskCard(task, status) {
   });
 
   return card;
-}
-
-// === Specs & Plans Renderer ===
-function handleSpecs({ linked }) {
-  // Extract plan tasks for kanban
-  currentPlanTasks = [];
-  if (linked) {
-    for (const item of linked) {
-      if (item.plan && item.plan.tasks) {
-        const planName = item.plan.title;
-        for (const task of item.plan.tasks) {
-          const status = task.progress === 100 ? 'completed'
-            : task.progress > 0 ? 'in_progress' : 'pending';
-          const stepsDone = task.steps.filter(s => s.done).length;
-          const stepsTotal = task.steps.length;
-          currentPlanTasks.push({
-            id: `P${task.id}`,
-            subject: task.title,
-            description: `${planName} — ${stepsDone}/${stepsTotal} steps`,
-            status,
-            activeForm: status === 'in_progress' ? `${task.progress}% complete` : null,
-            _planTask: task, // keep reference for detail rendering
-          });
-        }
-      }
-    }
-  }
-
-  // Refresh kanban with new plan data
-  refreshKanban();
-
-  if (!linked || linked.length === 0) {
-    specsSection.classList.add('hidden');
-    return;
-  }
-
-  specsSection.classList.remove('hidden');
-  specsList.innerHTML = '';
-
-  for (const item of linked) {
-    specsList.appendChild(createSpecGroup(item));
-  }
-}
-
-function createSpecGroup({ spec, plan }) {
-  const group = document.createElement('div');
-  group.className = 'spec-group';
-
-  // Determine what to show
-  const hasSpec = !!spec;
-  const hasPlan = !!plan;
-  const title = hasSpec ? spec.title : plan.title;
-  const date = hasSpec ? spec.date : plan.date;
-
-  // Progress summary
-  let progressHtml = '';
-  if (hasPlan) {
-    const doneCount = plan.tasks.filter(t => t.progress === 100).length;
-    progressHtml = `
-      <div class="spec-progress">
-        <div class="spec-progress-bar">
-          <div class="progress-fill ${plan.progress === 100 ? 'complete' : ''}" style="width: ${plan.progress}%"></div>
-        </div>
-        <span class="spec-progress-text">${plan.progress}%</span>
-        <span class="spec-progress-detail">${doneCount}/${plan.tasks.length} tasks</span>
-      </div>`;
-  }
-
-  // Status badge
-  let statusBadge = '';
-  if (hasSpec && !hasPlan) {
-    statusBadge = '<span class="spec-badge spec-badge-pending">Awaiting Plan</span>';
-  } else if (hasPlan && plan.progress === 100) {
-    statusBadge = '<span class="spec-badge spec-badge-done">Complete</span>';
-  } else if (hasPlan && plan.progress > 0) {
-    statusBadge = '<span class="spec-badge spec-badge-active">In Progress</span>';
-  } else if (hasPlan) {
-    statusBadge = '<span class="spec-badge spec-badge-pending">Not Started</span>';
-  }
-
-  // Type indicator
-  const typeLabel = hasSpec ? 'SPEC' : 'PLAN';
-  const typeClass = hasSpec ? 'spec-type-spec' : 'spec-type-plan';
-
-  let html = `
-    <div class="spec-card-header" onclick="this.parentElement.querySelector('.spec-card-body')?.classList.toggle('hidden')">
-      <div class="spec-card-top">
-        <span class="spec-type ${typeClass}">${typeLabel}</span>
-        <span class="spec-card-date">${date}</span>
-        ${statusBadge}
-      </div>
-      <h3 class="spec-card-title">${esc(title)}</h3>
-      ${progressHtml}
-    </div>`;
-
-  // Expandable body with plan tasks
-  if (hasPlan && plan.tasks.length > 0) {
-    html += `<div class="spec-card-body hidden">`;
-    for (const task of plan.tasks) {
-      const stepsDone = task.steps.filter(s => s.done).length;
-      const stepsTotal = task.steps.length;
-      html += `
-        <div class="spec-task" onclick="event.stopPropagation(); this.querySelector('.spec-task-steps')?.classList.toggle('hidden')">
-          <div class="spec-task-header">
-            <span class="spec-task-num">${task.progress === 100 ? '\u2713' : task.id}</span>
-            <span class="spec-task-title">${esc(task.title)}</span>
-            <span class="spec-task-meta">${stepsDone}/${stepsTotal}</span>
-            <div class="progress-bar spec-task-bar">
-              <div class="progress-fill ${task.progress === 100 ? 'complete' : ''}" style="width: ${task.progress}%"></div>
-            </div>
-          </div>
-          <div class="spec-task-steps hidden">
-            ${task.steps.map(s => `
-              <div class="plan-step">
-                <span class="plan-step-check ${s.done ? 'done' : ''}">${s.done ? '\u2713' : ''}</span>
-                <span>${esc(s.title)}</span>
-              </div>
-            `).join('')}
-          </div>
-        </div>`;
-    }
-    html += `</div>`;
-  }
-
-  group.innerHTML = html;
-  return group;
 }
 
 // === History ===

@@ -29,14 +29,25 @@ db.exec(`
     description TEXT,
     status TEXT NOT NULL DEFAULT 'pending',
     active_form TEXT,
+    owner TEXT,
     blocks TEXT,
     blocked_by TEXT,
+    metadata TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now')),
     PRIMARY KEY (id, session_id)
   );
   CREATE INDEX IF NOT EXISTS idx_tasks_session ON tasks(session_id);
 `);
+
+// Incremental migrations for existing databases
+const columns = db.prepare(`PRAGMA table_info(tasks)`).all().map(c => c.name);
+if (!columns.includes('owner')) {
+  db.exec(`ALTER TABLE tasks ADD COLUMN owner TEXT`);
+}
+if (!columns.includes('metadata')) {
+  db.exec(`ALTER TABLE tasks ADD COLUMN metadata TEXT`);
+}
 
 // --- Prepared statements ---
 const stmts = {
@@ -48,15 +59,17 @@ const stmts = {
   `),
 
   upsertTask: db.prepare(`
-    INSERT INTO tasks (id, session_id, subject, description, status, active_form, blocks, blocked_by, updated_at)
-    VALUES (@id, @sessionId, @subject, @description, @status, @activeForm, @blocks, @blockedBy, datetime('now'))
+    INSERT INTO tasks (id, session_id, subject, description, status, active_form, owner, blocks, blocked_by, metadata, updated_at)
+    VALUES (@id, @sessionId, @subject, @description, @status, @activeForm, @owner, @blocks, @blockedBy, @metadata, datetime('now'))
     ON CONFLICT(id, session_id) DO UPDATE SET
       subject = COALESCE(NULLIF(excluded.subject, ''), tasks.subject),
       description = COALESCE(NULLIF(excluded.description, ''), tasks.description),
       status = COALESCE(NULLIF(excluded.status, ''), tasks.status),
       active_form = COALESCE(NULLIF(excluded.active_form, ''), tasks.active_form),
+      owner = COALESCE(NULLIF(excluded.owner, ''), tasks.owner),
       blocks = COALESCE(NULLIF(excluded.blocks, ''), tasks.blocks),
       blocked_by = COALESCE(NULLIF(excluded.blocked_by, ''), tasks.blocked_by),
+      metadata = COALESCE(NULLIF(excluded.metadata, ''), tasks.metadata),
       updated_at = datetime('now')
   `),
 
@@ -98,8 +111,10 @@ export function upsertTask(sessionId, taskData) {
     description: taskData.description || '',
     status: taskData.status || '',
     activeForm: taskData.activeForm || '',
+    owner: taskData.owner || '',
     blocks: taskData.blocks ? JSON.stringify(taskData.blocks) : '',
     blockedBy: taskData.blockedBy ? JSON.stringify(taskData.blockedBy) : '',
+    metadata: taskData.metadata ? JSON.stringify(taskData.metadata) : '',
   });
 }
 
@@ -113,10 +128,15 @@ export function getSession(id) {
 export function getSessionTasks(sessionId) {
   const rows = stmts.getSessionTasks.all(sessionId);
   return rows.map(row => ({
-    ...row,
+    id: row.id,
+    subject: row.subject,
+    description: row.description,
+    status: row.status,
+    activeForm: row.active_form,
+    owner: row.owner || null,
     blocks: row.blocks ? JSON.parse(row.blocks) : [],
     blockedBy: row.blocked_by ? JSON.parse(row.blocked_by) : [],
-    activeForm: row.active_form,
+    metadata: row.metadata ? JSON.parse(row.metadata) : null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     sessionId: row.session_id,

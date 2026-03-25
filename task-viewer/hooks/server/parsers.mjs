@@ -1,81 +1,10 @@
 import { readFile, readdir } from 'node:fs/promises';
-import { join, basename } from 'node:path';
+import { join } from 'node:path';
 import { homedir } from 'node:os';
 
 const CLAUDE_DIR = join(homedir(), '.claude');
 
 // --- Session discovery (reads ~/.claude/sessions/) ---
-
-export async function parseSpec(mdPath) {
-  try {
-    const content = await readFile(mdPath, 'utf-8');
-    const filename = basename(mdPath);
-    const match = filename.match(/^(\d{4}-\d{2}-\d{2})-(.+?)-design\.md$/);
-    if (!match) return null;
-    const [, date, topic] = match;
-    const titleMatch = content.match(/^#\s+(.+)$/m);
-    const title = titleMatch ? titleMatch[1] : topic;
-    return { filename, date, topic, title, path: mdPath };
-  } catch {
-    return null;
-  }
-}
-
-export async function parsePlan(mdPath) {
-  try {
-    const content = await readFile(mdPath, 'utf-8');
-    const filename = basename(mdPath);
-    const match = filename.match(/^(\d{4}-\d{2}-\d{2})-(.+)\.md$/);
-    if (!match) return null;
-    const [, date, topic] = match;
-    const titleMatch = content.match(/^#\s+(.+)$/m);
-    const title = titleMatch ? titleMatch[1] : topic;
-    const tasks = [];
-    let currentTask = null;
-    for (const line of content.split('\n')) {
-      const taskMatch = line.match(/^###\s+Task\s+(\d+):\s*(.+)/);
-      if (taskMatch) {
-        currentTask = { id: parseInt(taskMatch[1]), title: taskMatch[2].trim(), steps: [] };
-        tasks.push(currentTask);
-        continue;
-      }
-      if (currentTask) {
-        const stepMatch = line.match(/^- \[([ x])\]\s+\*\*Step\s+\d+:\s*(.+?)\*\*/);
-        if (stepMatch) {
-          currentTask.steps.push({ done: stepMatch[1] === 'x', title: stepMatch[2].trim() });
-        }
-      }
-    }
-    for (const task of tasks) {
-      const total = task.steps.length;
-      const done = task.steps.filter(s => s.done).length;
-      task.progress = total > 0 ? Math.round((done / total) * 100) : 0;
-    }
-    const allSteps = tasks.flatMap(t => t.steps);
-    const totalSteps = allSteps.length;
-    const doneSteps = allSteps.filter(s => s.done).length;
-    const progress = totalSteps > 0 ? Math.round((doneSteps / totalSteps) * 100) : 0;
-    return { filename, date, topic, title, tasks, progress, path: mdPath };
-  } catch {
-    return null;
-  }
-}
-
-export function linkSpecsAndPlans(specs, plans) {
-  const plansByTopic = new Map();
-  for (const plan of plans) { plansByTopic.set(plan.topic, plan); }
-  const linked = [];
-  const usedPlanTopics = new Set();
-  for (const spec of specs) {
-    const plan = plansByTopic.get(spec.topic) || null;
-    if (plan) usedPlanTopics.add(spec.topic);
-    linked.push({ spec, plan });
-  }
-  for (const plan of plans) {
-    if (!usedPlanTopics.has(plan.topic)) { linked.push({ spec: null, plan }); }
-  }
-  return linked;
-}
 
 export async function findActiveSessions(projectCwd) {
   const sessionsDir = join(CLAUDE_DIR, 'sessions');
@@ -109,26 +38,4 @@ export async function discoverProjectSessions(projectCwd) {
     result.push({ sessionId: session.sessionId, pid: session.pid, startedAt: session.startedAt, taskCount });
   }
   return result.sort((a, b) => new Date(b.startedAt || 0).getTime() - new Date(a.startedAt || 0).getTime());
-}
-
-export async function loadAllSpecs(projectCwd) {
-  const dir = join(projectCwd, 'docs', 'superpowers', 'specs');
-  try {
-    const files = await readdir(dir);
-    const specs = await Promise.all(files.filter(f => f.endsWith('.md')).map(f => parseSpec(join(dir, f))));
-    return specs.filter(s => s !== null);
-  } catch {
-    return [];
-  }
-}
-
-export async function loadAllPlans(projectCwd) {
-  const dir = join(projectCwd, 'docs', 'superpowers', 'plans');
-  try {
-    const files = await readdir(dir);
-    const plans = await Promise.all(files.filter(f => f.endsWith('.md')).map(f => parsePlan(join(dir, f))));
-    return plans.filter(p => p !== null);
-  } catch {
-    return [];
-  }
 }

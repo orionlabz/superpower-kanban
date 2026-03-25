@@ -1,11 +1,10 @@
 # Task Viewer — Claude Code Plugin
 
-Real-time Kanban dashboard that visualizes Claude Code tasks and plans.
+Real-time Kanban dashboard that visualizes Claude Code tasks.
 
 ## Features
 
 - **Live Kanban Board** — See tasks move through Pending → In Progress → Completed in real-time
-- **Plan Integration** — View Superpowers specs and plans with progress tracking
 - **Session Persistence** — SQLite-backed history with summaries from previous sessions
 - **Dark/Light Theme** — Aurora theme with toggle and system preference support
 - **Auto-Lifecycle** — Starts with Claude Code, stops when you exit
@@ -21,12 +20,10 @@ The plugin hooks into Claude Code lifecycle events:
 
 ## Data Sources
 
-| Source | Path | Update Method |
-|--------|------|--------------|
-| Tasks | Synced via PostToolUse hook | REST POST + WebSocket broadcast |
-| Specs | `docs/superpowers/specs/*.md` | File watcher |
-| Plans | `docs/superpowers/plans/*.md` | File watcher |
-| Sessions | SQLite (`task-viewer.db`) | REST API (lazy load) |
+| Source | Update Method |
+|--------|--------------|
+| Tasks | PostToolUse hook → REST POST → WebSocket broadcast |
+| Sessions | SQLite (`task-viewer.db`) → REST API (lazy load) |
 
 ## Requirements
 
