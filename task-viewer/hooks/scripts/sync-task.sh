@@ -4,7 +4,7 @@ input=$(cat 2>/dev/null || echo '{}')
 session_id=$(echo "$input" | jq -r '.session_id // empty')
 tool_name=$(echo "$input" | jq -r '.tool_name // empty')
 
-# Extract task fields from tool_input and tool_output
+# Extract task fields
 task_id=$(echo "$input" | jq -r '.tool_output.id // .tool_input.taskId // empty')
 subject=$(echo "$input" | jq -r '.tool_output.subject // .tool_input.subject // empty')
 description=$(echo "$input" | jq -r '.tool_input.description // empty')
@@ -17,6 +17,17 @@ if [ -z "$session_id" ] || [ -z "$task_id" ]; then
   exit 0
 fi
 
+# Map status → kanban_column
+# pending → backlog (new tasks start in backlog)
+# in_progress → in_progress
+# completed → done
+# (todo column is set manually via MCP task_move/task_enrich)
+case "$status" in
+  in_progress) kanban_column="in_progress" ;;
+  completed)   kanban_column="done" ;;
+  *)           kanban_column="backlog" ;;
+esac
+
 # Build JSON payload
 payload=$(jq -n \
   --arg sid "$session_id" \
@@ -26,7 +37,8 @@ payload=$(jq -n \
   --arg description "$description" \
   --arg status "$status" \
   --arg active_form "$active_form" \
-  '{sessionId: $sid, taskId: $tid, toolName: $tool, subject: $subject, description: $description, status: $status, activeForm: $active_form}')
+  --arg kanban_column "$kanban_column" \
+  '{sessionId: $sid, taskId: $tid, toolName: $tool, subject: $subject, description: $description, status: $status, activeForm: $active_form, kanban_column: $kanban_column}')
 
 curl -s -X POST -H 'Content-Type: application/json' \
   -d "$payload" http://localhost:37778/api/tasks 2>/dev/null || true
