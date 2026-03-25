@@ -5,6 +5,8 @@ const MAX_RECONNECT = 30000;
 let currentSessionId = null;
 let currentPlanTasks = []; // plan tasks mapped to kanban format
 let currentClaudeTasks = []; // claude code tasks
+let claudeMemByTask = {}; // taskId -> { observations, relatedContext, timeline }
+let sessionClaudeMem = null; // session-level claude-mem data
 
 // === DOM refs ===
 const $ = (id) => document.getElementById(id);
@@ -43,6 +45,7 @@ function connect() {
       case 'tasks:update': handleTasks(msg.data); break;
       case 'specs:update': handleSpecs(msg.data); break;
       case 'session:change': handleSessionChange(msg.data); break;
+      case 'claudemem:update': handleClaudeMemUpdate(msg.data); break;
       case 'heartbeat': break;
     }
   };
@@ -61,6 +64,23 @@ function handleTasks({ tasks, sessionId }) {
 function handleSessionChange({ sessionId }) {
   currentSessionId = sessionId;
   sessionIdEl.textContent = `Session: ${sessionId.slice(0, 8)}...`;
+}
+
+function handleClaudeMemUpdate({ sessionId, taskId, claudeMem }) {
+  if (taskId) {
+    claudeMemByTask[taskId] = { ...(claudeMemByTask[taskId] || {}), ...claudeMem };
+    // Re-render if this task's card is currently expanded
+    const expandedCard = document.querySelector('.task-card.expanded');
+    if (expandedCard) {
+      const cardId = expandedCard.querySelector('.task-id')?.textContent?.replace('#', '');
+      if (cardId === String(taskId)) {
+        refreshKanban();
+      }
+    }
+  } else {
+    // Session-level claude-mem update
+    sessionClaudeMem = { ...(sessionClaudeMem || {}), ...claudeMem };
+  }
 }
 
 function refreshKanban() {
@@ -168,6 +188,48 @@ function createTaskCard(task, status) {
     html += `<div class="task-detail-label">Blocked By</div>`;
     html += `<div class="task-detail-value">${task.blockedBy.map(b => '#' + b).join(', ')}</div>`;
   }
+
+  // claude-mem enrichment sections
+  const cm = claudeMemByTask[task.id];
+  if (cm) {
+    if (cm.timeline?.length) {
+      html += `<div class="cm-section">
+        <div class="cm-section-header" onclick="event.stopPropagation(); this.nextElementSibling.classList.toggle('hidden')">
+          <span class="cm-icon">&#128340;</span> Timeline <span class="cm-count">${cm.timeline.length}</span>
+        </div>
+        <div class="cm-section-body hidden">
+          ${cm.timeline.map(t => `<div class="cm-timeline-entry">
+            <span class="cm-time">${esc(t.timestamp || '')}</span>
+            <span>${esc(t.action || t.text || '')}</span>
+          </div>`).join('')}
+        </div>
+      </div>`;
+    }
+    if (cm.observations?.length) {
+      html += `<div class="cm-section">
+        <div class="cm-section-header" onclick="event.stopPropagation(); this.nextElementSibling.classList.toggle('hidden')">
+          <span class="cm-icon">&#128161;</span> Observations <span class="cm-count">${cm.observations.length}</span>
+        </div>
+        <div class="cm-section-body hidden">
+          ${cm.observations.map(o => `<div class="cm-observation">${esc(typeof o === 'string' ? o : o.text || '')}</div>`).join('')}
+        </div>
+      </div>`;
+    }
+    if (cm.relatedContext?.length) {
+      html += `<div class="cm-section">
+        <div class="cm-section-header" onclick="event.stopPropagation(); this.nextElementSibling.classList.toggle('hidden')">
+          <span class="cm-icon">&#128279;</span> Related Context <span class="cm-count">${cm.relatedContext.length}</span>
+        </div>
+        <div class="cm-section-body hidden">
+          ${cm.relatedContext.map(c => `<div class="cm-context">
+            <span>${esc(typeof c === 'string' ? c : c.text || '')}</span>
+            ${c.source ? `<span class="cm-source">${esc(c.source)}</span>` : ''}
+          </div>`).join('')}
+        </div>
+      </div>`;
+    }
+  }
+
   html += `</div>`;
 
   card.innerHTML = html;
