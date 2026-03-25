@@ -205,20 +205,20 @@ function initDoneCollapse() {
 // === Theme ===
 function updateThemeIcon() {
   const btn = $('theme-toggle');
-  if (btn) btn.textContent = document.body.classList.contains('dark') ? '☀' : '☽';
+  if (btn) btn.textContent = document.body.classList.contains('light') ? '☽' : '☀';
 }
 function initTheme() {
   const saved = localStorage.getItem('task-viewer-theme');
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  if (saved === 'dark' || (!saved && prefersDark)) document.body.classList.add('dark');
+  const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+  if (saved === 'light' || (!saved && prefersLight)) document.body.classList.add('light');
   updateThemeIcon();
   $('current-session-only').addEventListener('change', e => {
     sessionFilter = e.target.checked;
     renderBoard();
   });
   $('theme-toggle').addEventListener('click', () => {
-    document.body.classList.toggle('dark');
-    localStorage.setItem('task-viewer-theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+    document.body.classList.toggle('light');
+    localStorage.setItem('task-viewer-theme', document.body.classList.contains('light') ? 'light' : 'dark');
     updateThemeIcon();
   });
 }
