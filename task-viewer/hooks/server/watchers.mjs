@@ -2,13 +2,12 @@ import chokidar from 'chokidar';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import {
-  loadSessionTasks,
   loadAllSpecs,
   loadAllPlans,
   linkSpecsAndPlans,
   discoverProjectSessions,
 } from './parsers.mjs';
-import { updateSessionTasks } from './storage.mjs';
+import { upsertSession } from './storage.mjs';
 
 const CLAUDE_DIR = join(homedir(), '.claude');
 
@@ -32,10 +31,7 @@ export class WatcherManager {
     const sessions = await discoverProjectSessions(this.projectCwd);
     if (sessions.length > 0) {
       this.activeSessionId = sessions[0].sessionId;
-    }
-
-    if (this.activeSessionId) {
-      this._watchTasks(this.activeSessionId);
+      upsertSession(this.activeSessionId, this.projectCwd);
     }
 
     const specsDir = join(this.projectCwd, 'docs', 'superpowers', 'specs');
@@ -61,39 +57,19 @@ export class WatcherManager {
     return watcher;
   }
 
-  _watchTasks(sessionId) {
-    const dir = join(CLAUDE_DIR, 'tasks', sessionId);
-    const handler = debounce(() => this._emitTasks(), 200);
-    if (this._taskWatcher) {
-      this._taskWatcher.close();
-      this.watchers = this.watchers.filter(w => w !== this._taskWatcher);
-    }
-    this._taskWatcher = this._watch(dir, '*.json', handler);
-  }
-
   async _checkNewSession() {
     const sessions = await discoverProjectSessions(this.projectCwd);
     if (sessions.length === 0) return;
     const latest = sessions[0];
     if (latest.sessionId !== this.activeSessionId) {
       this.activeSessionId = latest.sessionId;
-      this._watchTasks(this.activeSessionId);
+      upsertSession(this.activeSessionId, this.projectCwd);
       this.onUpdate('session:change', { sessionId: this.activeSessionId });
-      await this._emitTasks();
     }
   }
 
   async _emitTasks() {
-    if (!this.activeSessionId) {
-      this.onUpdate('tasks:update', { tasks: [], sessionId: null });
-      return;
-    }
-    const tasks = await loadSessionTasks(this.activeSessionId);
-    // Auto-persist task snapshot
-    if (tasks.length > 0) {
-      await updateSessionTasks(this.activeSessionId, tasks, this.projectCwd);
-    }
-    this.onUpdate('tasks:update', { tasks, sessionId: this.activeSessionId });
+    this.onUpdate('tasks:update', { tasks: [], sessionId: this.activeSessionId });
   }
 
   async _emitSpecsPlans() {
