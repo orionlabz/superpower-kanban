@@ -122,13 +122,12 @@ export async function discoverProjectSessions(projectCwd) {
   const result = [];
   for (const session of sessions) {
     const tasksDir = join(CLAUDE_DIR, 'tasks', session.sessionId);
+    let taskCount = 0;
     try {
       const files = await readdir(tasksDir);
-      const taskCount = files.filter(f => f.endsWith('.json') && !f.startsWith('.')).length;
-      if (taskCount > 0) {
-        result.push({ sessionId: session.sessionId, pid: session.pid, startedAt: session.startedAt, taskCount });
-      }
+      taskCount = files.filter(f => f.endsWith('.json') && !f.startsWith('.')).length;
     } catch { /* no tasks dir */ }
+    result.push({ sessionId: session.sessionId, pid: session.pid, startedAt: session.startedAt, taskCount });
   }
   return result.sort((a, b) => (b.startedAt || 0) - (a.startedAt || 0));
 }

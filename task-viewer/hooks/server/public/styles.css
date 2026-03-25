@@ -229,37 +229,87 @@ body {
 .task-card.completed .task-subject { text-decoration: line-through; color: var(--muted); }
 
 /* Specs & Plans */
-.specs-list { display: flex; flex-direction: column; gap: 10px; }
+.specs-list { display: flex; flex-direction: column; gap: 12px; }
 .spec-group {
-  background: var(--card); border-radius: var(--radius); padding: 16px;
+  background: var(--card); border-radius: var(--radius);
   border: 1px solid var(--card-border); box-shadow: var(--shadow-sm);
-  transition: box-shadow 0.2s;
+  overflow: hidden; transition: box-shadow 0.2s;
 }
 .spec-group:hover { box-shadow: var(--shadow-md); }
-.spec-header {
-  display: flex; align-items: center; gap: 10px; cursor: pointer;
-  user-select: none;
-}
-.spec-icon { font-size: 16px; }
-.spec-title { font-weight: 600; font-size: 14px; }
-.spec-date {
-  font-family: var(--font-mono); font-size: 11px; color: var(--muted);
-  background: var(--bg-elevated); padding: 2px 8px; border-radius: 6px;
-}
-.spec-no-plan {
-  font-size: 12px; color: var(--primary); font-style: italic; margin-left: 8px;
-}
-.spec-body { margin-top: 12px; padding-left: 26px; }
 
-.plan-item { margin-bottom: 12px; }
-.plan-header {
-  display: flex; align-items: center; gap: 10px; cursor: pointer;
-  user-select: none; margin-bottom: 6px;
+.spec-card-header {
+  padding: 16px; cursor: pointer; user-select: none;
+  transition: background 0.2s;
 }
-.plan-title { font-size: 13px; font-weight: 500; }
-.plan-progress-text {
-  font-family: var(--font-mono); font-size: 12px; font-weight: 600;
-  color: var(--primary);
+.spec-card-header:hover { background: var(--bg-elevated); }
+.spec-card-top {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+}
+.spec-type {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+  letter-spacing: 0.1em; padding: 2px 8px; border-radius: 4px;
+}
+.spec-type-spec { background: var(--primary); color: var(--primary-fg); }
+.spec-type-plan { background: var(--bg-elevated); color: var(--fg-secondary); }
+.spec-card-date {
+  font-family: var(--font-mono); font-size: 11px; color: var(--muted);
+}
+.spec-badge {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+  padding: 2px 10px; border-radius: 10px; margin-left: auto;
+}
+.spec-badge-active { background: var(--primary-light); color: var(--primary); }
+.spec-badge-done { background: var(--success-light); color: var(--success); }
+.spec-badge-pending { background: var(--bg-elevated); color: var(--muted); }
+.spec-card-title {
+  font-size: 15px; font-weight: 600; margin-bottom: 8px;
+}
+.spec-progress {
+  display: flex; align-items: center; gap: 10px;
+}
+.spec-progress-bar {
+  flex: 1; height: 8px; background: var(--bg-elevated); border-radius: 4px;
+  overflow: hidden;
+}
+.spec-progress-bar .progress-fill { height: 100%; border-radius: 4px; }
+.spec-progress-text {
+  font-family: var(--font-mono); font-size: 14px; font-weight: 700;
+  color: var(--primary); min-width: 36px;
+}
+.spec-progress-detail {
+  font-family: var(--font-mono); font-size: 11px; color: var(--muted);
+}
+
+/* Spec Task List */
+.spec-card-body {
+  border-top: 1px solid var(--card-border); padding: 0;
+  animation: fadeIn 0.15s ease;
+}
+.spec-task {
+  padding: 10px 16px; border-bottom: 1px solid var(--card-border);
+  cursor: pointer; transition: background 0.15s;
+}
+.spec-task:last-child { border-bottom: none; }
+.spec-task:hover { background: var(--bg-elevated); }
+.spec-task-header {
+  display: flex; align-items: center; gap: 8px;
+}
+.spec-task-num {
+  width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 11px; font-weight: 700;
+  background: var(--bg-elevated); color: var(--fg-secondary);
+}
+.spec-task:has(.progress-fill.complete) .spec-task-num {
+  background: var(--success); color: var(--primary-fg);
+}
+.spec-task-title { flex: 1; font-size: 13px; }
+.spec-task-meta {
+  font-family: var(--font-mono); font-size: 11px; color: var(--muted);
+}
+.spec-task-bar { flex: 0 0 60px; }
+.spec-task-steps {
+  padding: 6px 0 2px 32px; animation: fadeIn 0.15s ease;
 }
 
 /* Progress Bar */
@@ -273,24 +323,10 @@ body {
 }
 .progress-fill.complete { background: var(--success); }
 
-/* Plan Tasks */
-.plan-tasks { padding-left: 16px; margin-top: 8px; }
-.plan-task {
-  display: flex; align-items: center; gap: 8px;
-  padding: 4px 0; font-size: 13px;
-}
-.plan-task-title { flex: 1; }
-.plan-task-progress {
-  font-family: var(--font-mono); font-size: 11px; color: var(--primary);
-  min-width: 40px; text-align: right; font-weight: 600;
-}
-.plan-task .progress-bar { flex: 0 0 80px; }
-
 /* Plan Steps */
-.plan-steps { padding-left: 24px; margin-top: 4px; }
 .plan-step {
   display: flex; align-items: center; gap: 6px;
-  font-size: 12px; color: var(--fg-secondary); padding: 2px 0;
+  font-size: 12px; color: var(--fg-secondary); padding: 3px 0;
 }
 .plan-step-check {
   width: 16px; height: 16px; border: 2px solid var(--card-border);

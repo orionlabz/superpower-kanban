@@ -182,54 +182,83 @@ function createSpecGroup({ spec, plan }) {
   const group = document.createElement('div');
   group.className = 'spec-group';
 
-  const title = spec ? spec.title : plan.title;
-  const date = spec ? spec.date : plan.date;
-  const icon = spec ? '\u{1F4C4}' : '\u{1F4CB}';
+  // Determine what to show
+  const hasSpec = !!spec;
+  const hasPlan = !!plan;
+  const title = hasSpec ? spec.title : plan.title;
+  const date = hasSpec ? spec.date : plan.date;
 
-  let headerHtml = `
-    <div class="spec-header" onclick="this.parentElement.querySelector('.spec-body')?.classList.toggle('hidden')">
-      <span class="spec-icon">${icon}</span>
-      <span class="spec-title">${esc(title)}</span>
-      <span class="spec-date">${date}</span>`;
-
-  if (spec && !plan) {
-    headerHtml += `<span class="spec-no-plan">(plan not yet created)</span>`;
-  }
-  headerHtml += `</div>`;
-
-  let bodyHtml = '';
-  if (plan) {
-    bodyHtml = `<div class="spec-body hidden">`;
-    bodyHtml += `<div class="plan-item">
-      <div class="plan-header" onclick="this.parentElement.querySelector('.plan-tasks')?.classList.toggle('hidden')">
-        <span class="plan-title">${esc(plan.title)}</span>
-        <span class="plan-progress-text">${plan.progress}%</span>
-      </div>
-      <div class="progress-bar">
-        <div class="progress-fill ${plan.progress === 100 ? 'complete' : ''}" style="width: ${plan.progress}%"></div>
-      </div>
-      <div class="plan-tasks hidden">`;
-
-    for (const task of plan.tasks) {
-      bodyHtml += `
-        <div class="plan-task" onclick="this.querySelector('.plan-steps')?.classList.toggle('hidden')">
-          <span class="plan-task-title">${esc(task.title)}</span>
-          <div class="progress-bar"><div class="progress-fill ${task.progress === 100 ? 'complete' : ''}" style="width: ${task.progress}%"></div></div>
-          <span class="plan-task-progress">${task.progress}%</span>
+  // Progress summary
+  let progressHtml = '';
+  if (hasPlan) {
+    const doneCount = plan.tasks.filter(t => t.progress === 100).length;
+    progressHtml = `
+      <div class="spec-progress">
+        <div class="spec-progress-bar">
+          <div class="progress-fill ${plan.progress === 100 ? 'complete' : ''}" style="width: ${plan.progress}%"></div>
         </div>
-        <div class="plan-steps hidden">
-          ${task.steps.map(s => `
-            <div class="plan-step">
-              <span class="plan-step-check ${s.done ? 'done' : ''}">${s.done ? '\u2713' : ''}</span>
-              <span>${esc(s.title)}</span>
+        <span class="spec-progress-text">${plan.progress}%</span>
+        <span class="spec-progress-detail">${doneCount}/${plan.tasks.length} tasks</span>
+      </div>`;
+  }
+
+  // Status badge
+  let statusBadge = '';
+  if (hasSpec && !hasPlan) {
+    statusBadge = '<span class="spec-badge spec-badge-pending">Awaiting Plan</span>';
+  } else if (hasPlan && plan.progress === 100) {
+    statusBadge = '<span class="spec-badge spec-badge-done">Complete</span>';
+  } else if (hasPlan && plan.progress > 0) {
+    statusBadge = '<span class="spec-badge spec-badge-active">In Progress</span>';
+  } else if (hasPlan) {
+    statusBadge = '<span class="spec-badge spec-badge-pending">Not Started</span>';
+  }
+
+  // Type indicator
+  const typeLabel = hasSpec ? 'SPEC' : 'PLAN';
+  const typeClass = hasSpec ? 'spec-type-spec' : 'spec-type-plan';
+
+  let html = `
+    <div class="spec-card-header" onclick="this.parentElement.querySelector('.spec-card-body')?.classList.toggle('hidden')">
+      <div class="spec-card-top">
+        <span class="spec-type ${typeClass}">${typeLabel}</span>
+        <span class="spec-card-date">${date}</span>
+        ${statusBadge}
+      </div>
+      <h3 class="spec-card-title">${esc(title)}</h3>
+      ${progressHtml}
+    </div>`;
+
+  // Expandable body with plan tasks
+  if (hasPlan && plan.tasks.length > 0) {
+    html += `<div class="spec-card-body hidden">`;
+    for (const task of plan.tasks) {
+      const stepsDone = task.steps.filter(s => s.done).length;
+      const stepsTotal = task.steps.length;
+      html += `
+        <div class="spec-task" onclick="event.stopPropagation(); this.querySelector('.spec-task-steps')?.classList.toggle('hidden')">
+          <div class="spec-task-header">
+            <span class="spec-task-num">${task.progress === 100 ? '\u2713' : task.id}</span>
+            <span class="spec-task-title">${esc(task.title)}</span>
+            <span class="spec-task-meta">${stepsDone}/${stepsTotal}</span>
+            <div class="progress-bar spec-task-bar">
+              <div class="progress-fill ${task.progress === 100 ? 'complete' : ''}" style="width: ${task.progress}%"></div>
             </div>
-          `).join('')}
+          </div>
+          <div class="spec-task-steps hidden">
+            ${task.steps.map(s => `
+              <div class="plan-step">
+                <span class="plan-step-check ${s.done ? 'done' : ''}">${s.done ? '\u2713' : ''}</span>
+                <span>${esc(s.title)}</span>
+              </div>
+            `).join('')}
+          </div>
         </div>`;
     }
-    bodyHtml += `</div></div></div>`;
+    html += `</div>`;
   }
 
-  group.innerHTML = headerHtml + bodyHtml;
+  group.innerHTML = html;
   return group;
 }
 
