@@ -10,6 +10,7 @@ import {
   getSession,
   getSessionTasks,
   listSessions,
+  listFeatures,
   finalizeSession,
 } from './storage.mjs';
 
@@ -19,6 +20,11 @@ const PROJECT_CWD = process.env.PROJECT_CWD || process.cwd();
 
 const app = express();
 app.use(express.json());
+
+app.get('/api/health', (_req, res) => {
+  res.json({ status: 'ok', projectCwd: PROJECT_CWD, port: PORT });
+});
+
 app.use(express.static(join(__dirname, 'public')));
 
 // Explicit index route — serve-static 1.16.x doesn't auto-resolve / to index.html
@@ -39,9 +45,9 @@ app.post('/api/tasks', (req, res) => {
     // Upsert the task
     upsertTask(sessionId, { id: taskId, subject, description, status, activeForm });
 
-    // Broadcast updated task list
-    const tasks = getSessionTasks(sessionId);
-    broadcast('tasks:update', { tasks, sessionId });
+    // Broadcast updated features
+    const features = listFeatures(PROJECT_CWD);
+    broadcast('features:update', { features });
 
     res.json({ ok: true });
   } catch (err) {
@@ -59,6 +65,16 @@ app.post('/api/session-context/finalize', (req, res) => {
   } catch (err) {
     console.error('POST /api/session-context/finalize error:', err);
     res.status(500).json({ error: 'failed to finalize session' });
+  }
+});
+
+app.get('/api/features', (_req, res) => {
+  try {
+    const features = listFeatures(PROJECT_CWD);
+    res.json(features);
+  } catch (err) {
+    console.error('GET /api/features error:', err);
+    res.status(500).json({ error: 'failed to list features' });
   }
 });
 
