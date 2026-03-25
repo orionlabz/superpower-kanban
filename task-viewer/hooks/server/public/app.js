@@ -155,7 +155,7 @@ function createCard(task) {
       ${task.activeForm ? `<div class="detail-field"><span class="detail-label">Active</span><span class="active-form">${esc(task.activeForm)}</span></div>` : ''}
       ${task.metadata?.feature ? `<div class="detail-field"><span class="detail-label">Feature</span><span class="detail-value">${esc(task.metadata.feature)}</span></div>` : ''}
       ${task.tags?.length ? `<div class="detail-field"><span class="detail-label">Tags</span><span class="detail-value">${task.tags.map(t => esc(t)).join(', ')}</span></div>` : ''}
-      <div class="detail-field"><span class="detail-label">Session</span><span class="detail-value" style="font-family:monospace;font-size:11px">${shortSession(task.sessionId)}</span></div>
+      <div class="detail-field"><span class="detail-label">Session</span><span class="detail-value" style="font-family:monospace;font-size:11px">${esc(shortSession(task.sessionId))}</span></div>
       <div class="detail-field"><span class="detail-label">Updated</span><span class="detail-value">${task.updatedAt ? new Date(task.updatedAt + ' UTC').toLocaleString() : '—'}</span></div>
     </div>
   `;
@@ -202,28 +202,26 @@ function initDoneCollapse() {
   });
 }
 
-// === Session filter toggle ===
-$('current-session-only').addEventListener('change', e => {
-  sessionFilter = e.target.checked;
-  renderBoard();
-});
-
 // === Theme ===
+function updateThemeIcon() {
+  const btn = $('theme-toggle');
+  if (btn) btn.textContent = document.body.classList.contains('dark') ? '☀' : '☽';
+}
 function initTheme() {
   const saved = localStorage.getItem('task-viewer-theme');
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
   if (saved === 'dark' || (!saved && prefersDark)) document.body.classList.add('dark');
   updateThemeIcon();
+  $('current-session-only').addEventListener('change', e => {
+    sessionFilter = e.target.checked;
+    renderBoard();
+  });
+  $('theme-toggle').addEventListener('click', () => {
+    document.body.classList.toggle('dark');
+    localStorage.setItem('task-viewer-theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+    updateThemeIcon();
+  });
 }
-function updateThemeIcon() {
-  const btn = $('theme-toggle');
-  if (btn) btn.textContent = document.body.classList.contains('dark') ? '☀' : '☽';
-}
-$('theme-toggle').addEventListener('click', () => {
-  document.body.classList.toggle('dark');
-  localStorage.setItem('task-viewer-theme', document.body.classList.contains('dark') ? 'dark' : 'light');
-  updateThemeIcon();
-});
 
 // === Boot ===
 initTheme();
