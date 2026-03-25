@@ -3,73 +3,77 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Task Viewer — Claude Code</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <title>Task Viewer</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div id="connection-banner" class="connection-banner hidden">
-    <span class="connection-dot"></span>
-    <span>Reconnecting...</span>
+  <div class="app">
+    <header class="toolbar">
+      <div class="toolbar-left">
+        <span class="app-title">Task Viewer</span>
+        <span class="project-badge" id="project-name">—</span>
+        <span class="session-badge" id="session-id">—</span>
+      </div>
+      <div class="toolbar-center" id="component-filters">
+        <!-- component filter chips populated by JS -->
+      </div>
+      <div class="toolbar-right">
+        <label class="session-toggle">
+          <input type="checkbox" id="current-session-only">
+          <span>This session</span>
+        </label>
+        <span class="status-dot" id="status-dot" title="Disconnected"></span>
+        <button class="theme-btn" id="theme-toggle">☽</button>
+      </div>
+    </header>
+
+    <div class="connection-banner hidden" id="connection-banner">
+      Reconnecting to Task Viewer…
+    </div>
+
+    <main class="board">
+      <div class="column" id="col-backlog">
+        <div class="column-header">
+          <span class="column-title">Backlog</span>
+          <span class="column-count" id="count-backlog">0</span>
+        </div>
+        <div class="column-body" id="cards-backlog">
+          <div class="empty-state">No tasks here</div>
+        </div>
+      </div>
+
+      <div class="column" id="col-todo">
+        <div class="column-header">
+          <span class="column-title">Todo</span>
+          <span class="column-count" id="count-todo">0</span>
+        </div>
+        <div class="column-body" id="cards-todo">
+          <div class="empty-state">No tasks here</div>
+        </div>
+      </div>
+
+      <div class="column" id="col-in_progress">
+        <div class="column-header">
+          <span class="column-title">In Progress</span>
+          <span class="column-count" id="count-in_progress">0</span>
+        </div>
+        <div class="column-body" id="cards-in_progress">
+          <div class="empty-state">No tasks here</div>
+        </div>
+      </div>
+
+      <div class="column collapsed" id="col-done">
+        <div class="column-header" id="done-header" role="button" tabindex="0" aria-expanded="false">
+          <span class="column-title">Done</span>
+          <span class="column-count" id="count-done">0</span>
+          <span class="collapse-chevron">▶</span>
+        </div>
+        <div class="column-body hidden" id="cards-done">
+          <div class="empty-state">No tasks here</div>
+        </div>
+      </div>
+    </main>
   </div>
-
-  <header class="header">
-    <div class="header-left">
-      <h1 class="header-title">Task Viewer</h1>
-      <span class="header-subtitle">Claude Code</span>
-    </div>
-    <div class="header-right">
-      <span id="session-id" class="session-id">No active session</span>
-      <span id="status-dot" class="status-dot offline"></span>
-      <button id="theme-toggle" class="theme-toggle" title="Toggle dark mode">&#9790;</button>
-    </div>
-  </header>
-
-  <main class="main">
-    <section id="kanban-section" class="section">
-      <h2 class="section-title">Active Session</h2>
-      <div id="kanban-no-session" class="empty-state">
-        <p>Waiting for Claude Code session...</p>
-      </div>
-      <div id="kanban-no-tasks" class="empty-state hidden">
-        <p>No tasks yet — Claude will create them as it works</p>
-      </div>
-      <div id="kanban" class="kanban hidden">
-        <div class="kanban-column">
-          <div class="column-header">
-            <span class="column-title">Pending</span>
-            <span id="count-pending" class="column-count">0</span>
-          </div>
-          <div id="col-pending" class="column-cards"></div>
-        </div>
-        <div class="kanban-column">
-          <div class="column-header">
-            <span class="column-title">In Progress</span>
-            <span id="count-in_progress" class="column-count">0</span>
-          </div>
-          <div id="col-in_progress" class="column-cards"></div>
-        </div>
-        <div class="kanban-column">
-          <div class="column-header">
-            <span class="column-title">Completed</span>
-            <span id="count-completed" class="column-count">0</span>
-          </div>
-          <div id="col-completed" class="column-cards"></div>
-        </div>
-      </div>
-    </section>
-
-<section id="history-section" class="section">
-      <h2 class="section-title">Session History</h2>
-      <div id="history-empty" class="empty-state">
-        <p>No previous sessions found</p>
-      </div>
-      <div id="history-list" class="history-list hidden"></div>
-    </section>
-  </main>
-
   <script src="app.js"></script>
 </body>
 </html>
