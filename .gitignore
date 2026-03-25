@@ -1,0 +1,4 @@
+.gitnexus
+task-viewer/hooks/server/data/*.db
+task-viewer/hooks/server/data/*.db-wal
+task-viewer/hooks/server/data/*.db-shm
