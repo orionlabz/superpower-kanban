@@ -8,6 +8,7 @@ import {
   linkSpecsAndPlans,
   discoverProjectSessions,
 } from './parsers.mjs';
+import { updateSessionTasks } from './storage.mjs';
 
 const CLAUDE_DIR = join(homedir(), '.claude');
 
@@ -88,6 +89,10 @@ export class WatcherManager {
       return;
     }
     const tasks = await loadSessionTasks(this.activeSessionId);
+    // Auto-persist task snapshot
+    if (tasks.length > 0) {
+      await updateSessionTasks(this.activeSessionId, tasks, this.projectCwd);
+    }
     this.onUpdate('tasks:update', { tasks, sessionId: this.activeSessionId });
   }
 
