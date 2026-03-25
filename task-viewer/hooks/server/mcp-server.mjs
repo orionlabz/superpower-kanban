@@ -9,8 +9,6 @@ import {
   moveTask,
   getDashboard,
   listKanban,
-  upsertTask,
-  upsertSession,
 } from './storage.mjs';
 
 // Get projectCwd from the running Express server
@@ -122,7 +120,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       // Notify Express server to broadcast kanban update
       fetch('http://localhost:37778/api/kanban-notify', { method: 'POST' }).catch(() => {});
       return {
-        content: [{ type: 'text', text: JSON.stringify(updated || { taskId, sessionId, ...fields, updated: true }) }],
+        content: [{ type: 'text', text: JSON.stringify(updated || { taskId, sessionId, ...fields, updated: false }) }],
       };
     }
 
