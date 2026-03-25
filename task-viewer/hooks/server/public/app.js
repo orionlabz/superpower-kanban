@@ -381,7 +381,7 @@ function createSpecGroup({ spec, plan }) {
 // === History ===
 async function loadHistory() {
   try {
-    const res = await fetch('/api/history');
+    const res = await fetch('/api/sessions');
     const sessions = await res.json();
     renderHistory(sessions);
   } catch { /* ignore */ }
@@ -408,15 +408,25 @@ function renderHistory(sessions) {
       ? new Date(session.startedAt).toLocaleString()
       : 'Unknown date';
 
+    const summaryHtml = session.summary
+      ? `<div class="history-summary">${esc(session.summary)}</div>`
+      : '';
+
+    const memBadge = session.hasClaudeMem
+      ? '<span class="cm-badge">&#128161; mem</span>'
+      : '';
+
     item.innerHTML = `
       <div class="history-header" onclick="toggleHistory(this, '${session.sessionId}')">
         <div>
-          <span class="history-chevron">\u25B8</span>
+          <span class="history-chevron">&#9656;</span>
           <span class="history-date">${date}</span>
           <span class="history-task-count">${session.taskCount} tasks</span>
+          ${memBadge}
         </div>
         <span class="history-meta">${session.sessionId.slice(0, 8)}...</span>
       </div>
+      ${summaryHtml}
       <div class="history-body hidden" id="history-${session.sessionId}"></div>`;
 
     historyList.appendChild(item);
@@ -440,9 +450,10 @@ async function toggleHistory(header, sessionId) {
   if (!body.dataset.loaded) {
     body.innerHTML = '<p style="color: var(--muted); font-size: 12px; padding: 8px;">Loading...</p>';
     try {
-      const res = await fetch(`/api/history/${sessionId}`);
-      const tasks = await res.json();
-      body.innerHTML = renderHistoryKanban(tasks);
+      const res = await fetch(`/api/sessions/${sessionId}`);
+      const session = await res.json();
+      const tasks = session.tasks || [];
+      body.innerHTML = renderHistoryKanban(tasks) + renderHistoryClaudeMem(session);
       body.dataset.loaded = 'true';
     } catch {
       body.innerHTML = '<p style="color: var(--destructive); font-size: 12px;">Failed to load</p>';
@@ -450,6 +461,39 @@ async function toggleHistory(header, sessionId) {
   }
 }
 window.toggleHistory = toggleHistory;
+
+function renderHistoryClaudeMem(session) {
+  if (!session.claudeMem) return '';
+  const { timeline, observations } = session.claudeMem;
+  if (!timeline?.length && !observations?.length) return '';
+
+  let html = '<div class="history-cm">';
+  if (timeline?.length) {
+    html += `<div class="cm-section">
+      <div class="cm-section-header" onclick="this.nextElementSibling.classList.toggle('hidden')">
+        <span class="cm-icon">&#128340;</span> Session Timeline <span class="cm-count">${timeline.length}</span>
+      </div>
+      <div class="cm-section-body hidden">
+        ${timeline.map(t => `<div class="cm-timeline-entry">
+          <span class="cm-time">${esc(t.timestamp || '')}</span>
+          <span>${esc(t.action || t.text || '')}</span>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }
+  if (observations?.length) {
+    html += `<div class="cm-section">
+      <div class="cm-section-header" onclick="this.nextElementSibling.classList.toggle('hidden')">
+        <span class="cm-icon">&#128161;</span> Observations <span class="cm-count">${observations.length}</span>
+      </div>
+      <div class="cm-section-body hidden">
+        ${observations.map(o => `<div class="cm-observation">${esc(typeof o === 'string' ? o : o.text || '')}</div>`).join('')}
+      </div>
+    </div>`;
+  }
+  html += '</div>';
+  return html;
+}
 
 function renderHistoryKanban(tasks) {
   const groups = { pending: [], in_progress: [], completed: [] };
