@@ -352,17 +352,12 @@ function renderHistory(sessions) {
       ? `<div class="history-summary">${esc(session.summary)}</div>`
       : '';
 
-    const memBadge = session.hasClaudeMem
-      ? '<span class="cm-badge">&#128161; mem</span>'
-      : '';
-
     item.innerHTML = `
       <div class="history-header" onclick="toggleHistory(this, '${session.sessionId}')">
         <div>
           <span class="history-chevron">&#9656;</span>
           <span class="history-date">${date}</span>
           <span class="history-task-count">${session.taskCount} tasks</span>
-          ${memBadge}
         </div>
         <span class="history-meta">${session.sessionId.slice(0, 8)}...</span>
       </div>

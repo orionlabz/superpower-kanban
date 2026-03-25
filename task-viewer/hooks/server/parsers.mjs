@@ -4,28 +4,7 @@ import { homedir } from 'node:os';
 
 const CLAUDE_DIR = join(homedir(), '.claude');
 
-export async function parseTask(jsonPath) {
-  try {
-    const content = await readFile(jsonPath, 'utf-8');
-    return JSON.parse(content);
-  } catch {
-    return null;
-  }
-}
-
-export async function loadSessionTasks(sessionId) {
-  const dir = join(CLAUDE_DIR, 'tasks', sessionId);
-  try {
-    const files = await readdir(dir);
-    const jsonFiles = files.filter(f => f.endsWith('.json') && !f.startsWith('.'));
-    const tasks = await Promise.all(
-      jsonFiles.map(f => parseTask(join(dir, f)))
-    );
-    return tasks.filter(t => t !== null && t.status !== 'deleted');
-  } catch {
-    return [];
-  }
-}
+// --- Session discovery (reads ~/.claude/sessions/) ---
 
 export async function parseSpec(mdPath) {
   try {
@@ -129,7 +108,7 @@ export async function discoverProjectSessions(projectCwd) {
     } catch { /* no tasks dir */ }
     result.push({ sessionId: session.sessionId, pid: session.pid, startedAt: session.startedAt, taskCount });
   }
-  return result.sort((a, b) => (b.startedAt || 0) - (a.startedAt || 0));
+  return result.sort((a, b) => new Date(b.startedAt || 0).getTime() - new Date(a.startedAt || 0).getTime());
 }
 
 export async function loadAllSpecs(projectCwd) {

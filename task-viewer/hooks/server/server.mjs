@@ -4,7 +4,6 @@ import { WebSocketServer } from 'ws';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { WatcherManager } from './watchers.mjs';
-import { discoverProjectSessions } from './parsers.mjs';
 import {
   upsertSession,
   upsertTask,
