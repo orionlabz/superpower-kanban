@@ -513,6 +513,68 @@ const RENDERERS = {
       <div style="${INT}font-size:27px;color:#555;line-height:1.5;margin-bottom:auto;">${esc(slide.conclusion)}</div>
       ${footerBar()}
     </div>`;
+  },
+
+  b(slide) {
+  const items = (slide.list_items || []).map(item =>
+    `<div style="display:flex;gap:28px;margin-bottom:22px;align-items:baseline;">
+      <div style="width:20px;height:1px;background:#2a2a2a;flex-shrink:0;margin-top:14px;"></div>
+      <span style="${INT}font-size:27px;color:#3a3a3a;line-height:1.45;">${esc(item)}</span>
+     </div>`
+  ).join('');
+  return `<div style="width:1080px;height:1350px;background:#060606;display:flex;flex-direction:column;padding:54px 76px 80px;position:relative;overflow:hidden;">
+    <div style="${PF}position:absolute;top:-20px;right:40px;font-size:480px;color:#111;line-height:1;user-select:none;pointer-events:none;letter-spacing:-.02em;">${esc(slide.section_number||'')}</div>
+    <div style="display:flex;align-items:center;gap:22px;font-size:0;padding-bottom:40px;position:relative;">
+      <span style="${INT}font-size:18px;letter-spacing:.18em;color:#282828;text-transform:uppercase;">${esc(S.brand.nav_left||'CATEGORIA')}</span>
+      <div style="flex:1;height:1px;background:#1e1e1e;"></div>
+      <span style="${INT}font-size:18px;letter-spacing:.18em;color:#282828;text-transform:uppercase;">${esc(S.brand.nav_right||'SÉRIE')}</span>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;position:relative;">
+      <div style="${INT}font-size:18px;letter-spacing:.22em;color:#2e2e2e;text-transform:uppercase;margin-bottom:24px;">Seção ${esc(slide.section_number||'')}</div>
+      <div style="${PF}font-size:72px;line-height:1.05;font-weight:400;color:#e8e8e8;margin-bottom:40px;">${esc(slide.section_title)}</div>
+      <div style="${INT}font-size:27px;color:#505050;line-height:1.6;margin-bottom:48px;">${esc(slide.body)}</div>
+      <div style="margin-bottom:0;">${items}</div>
+      <div style="margin-top:auto;padding-top:32px;">
+        <div style="${PF}font-size:27px;color:#2e2e2e;line-height:1.5;font-style:italic;">${esc(slide.conclusion)}</div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding-top:36px;">
+      <span style="${INT}font-size:22px;color:#1e1e1e;">${esc(S.brand.brand_logo||'⬥')} ${esc(S.brand.brand_name||'Marca')}</span>
+      <span style="${INT}font-size:18px;letter-spacing:.14em;color:#1a1a1a;text-transform:uppercase;">${esc(S.brand.brand_name||'Marca')}</span>
+    </div>
+  </div>`;
+  },
+
+  c(slide) {
+  const items = (slide.list_items || []).map(item =>
+    `<div style="display:flex;gap:28px;margin-bottom:22px;align-items:baseline;">
+      <span style="${INT}color:#555;font-size:27px;flex-shrink:0;">·</span>
+      <span style="${INT}font-size:27px;color:#666;line-height:1.45;">${esc(item)}</span>
+     </div>`
+  ).join('');
+  return `<div style="width:1080px;height:1350px;background:#000;display:flex;flex-direction:column;padding:54px 76px 80px;">
+    <div style="display:flex;align-items:center;gap:22px;margin-bottom:48px;">
+      <span style="${INT}font-size:18px;letter-spacing:.18em;color:#282828;text-transform:uppercase;">${esc(S.brand.nav_left||'CATEGORIA')}</span>
+      <div style="flex:1;height:1px;background:#1e1e1e;"></div>
+      <span style="${INT}font-size:18px;letter-spacing:.18em;color:#282828;text-transform:uppercase;">${esc(S.brand.nav_right||'SÉRIE')}</span>
+    </div>
+    <div style="display:flex;gap:52px;align-items:flex-start;margin-bottom:52px;border-top:1px solid #1a1a1a;padding-top:36px;">
+      <div style="flex:0 0 160px;">
+        <div style="${INT}font-size:14px;letter-spacing:.18em;color:#2a2a2a;text-transform:uppercase;margin-bottom:8px;">Seção</div>
+        <div style="${PF}font-size:120px;color:#161616;line-height:1;letter-spacing:-.02em;">${esc(slide.section_number||'')}</div>
+      </div>
+      <div style="flex:1;padding-top:8px;">
+        <div style="${PF}font-size:62px;line-height:1.1;font-weight:400;color:#fff;">${esc(slide.section_title)}</div>
+      </div>
+    </div>
+    <div style="${INT}font-size:27px;color:#666;line-height:1.5;margin-bottom:32px;">${esc(slide.body)}</div>
+    <div style="margin-bottom:24px;">${items}</div>
+    <div style="${INT}font-size:27px;color:#3a3a3a;line-height:1.5;margin-bottom:auto;">${esc(slide.conclusion)}</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding-top:36px;">
+      <span style="${INT}font-size:22px;color:#252525;">${esc(S.brand.brand_logo||'⬥')} ${esc(S.brand.brand_name||'Marca')}</span>
+      <span style="${INT}font-size:22px;letter-spacing:.14em;color:#252525;text-transform:uppercase;">${esc(S.brand.brand_name||'Marca')}</span>
+    </div>
+  </div>`;
   } },
 
   steps:   { a(slide) {
