@@ -139,15 +139,20 @@
               <div class="panel-steps" id="detail-steps"></div>
             </div>
             <div class="panel-section">
-              <div class="panel-section-title">Suas Anotações</div>
-              <div class="panel-user-notes" id="user-notes-list"></div>
-              <textarea class="panel-note-input" id="note-input" placeholder="Adicionar anotação..." rows="2" aria-label="Adicionar anotação"></textarea>
-              <button class="panel-note-save" id="note-save">Salvar</button>
-              <div class="panel-note-error hidden" id="note-error"></div>
-            </div>
-            <div class="panel-section">
-              <div class="panel-section-title">Anotações do Claude</div>
-              <div class="panel-claude-notes" id="claude-notes-list"></div>
+              <div class="panel-section-title">Anotações</div>
+              <div class="panel-notes-tabs">
+                <button class="panel-notes-tab active" data-notes-tab="user">Minhas</button>
+                <button class="panel-notes-tab" data-notes-tab="claude">Claude</button>
+              </div>
+              <div id="notes-tab-user">
+                <div class="panel-user-notes" id="user-notes-list"></div>
+                <textarea class="panel-note-input" id="note-input" placeholder="Adicionar anotação..." rows="2" aria-label="Adicionar anotação"></textarea>
+                <button class="panel-note-save" id="note-save">Salvar</button>
+                <div class="panel-note-error hidden" id="note-error"></div>
+              </div>
+              <div class="hidden" id="notes-tab-claude">
+                <div class="panel-claude-notes" id="claude-notes-list"></div>
+              </div>
             </div>
             <div class="panel-tabs">
               <button class="panel-tab active" id="tab-progress" data-tab="progress">Progresso</button>

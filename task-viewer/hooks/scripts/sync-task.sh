@@ -6,7 +6,7 @@ tool_name=$(echo "$input" | jq -r '.tool_name // empty')
 
 # Extract task fields
 task_id=$(echo "$input" | jq -r '.tool_output.id // .tool_input.taskId // empty')
-subject=$(echo "$input" | jq -r '.tool_output.subject // .tool_input.subject // empty')
+subject=$(echo "$input" | jq -r '.tool_output.subject // .tool_input.subject // empty' | sed 's/^Task [0-9]*[:.] *//')
 description=$(echo "$input" | jq -r '.tool_input.description // empty')
 status=$(echo "$input" | jq -r '.tool_output.status // .tool_input.status // empty')
 active_form=$(echo "$input" | jq -r '.tool_input.activeForm // empty')

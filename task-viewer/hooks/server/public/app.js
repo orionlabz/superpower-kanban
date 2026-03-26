@@ -579,6 +579,17 @@ function initPanel() {
     });
   });
 
+  // Notes tab switching (Minhas / Claude)
+  document.querySelectorAll('.panel-notes-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.panel-notes-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const tab = btn.dataset.notesTab;
+      $('notes-tab-user').classList.toggle('hidden', tab !== 'user');
+      $('notes-tab-claude').classList.toggle('hidden', tab !== 'claude');
+    });
+  });
+
   // Note save
   $('note-save').addEventListener('click', async () => {
     if (!selectedTask) return;

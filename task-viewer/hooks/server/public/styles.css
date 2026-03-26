@@ -631,7 +631,7 @@ body.light .component-tag { background: var(--bg2); }
 
 /* === Side Panel === */
 .side-panel {
-  width: 240px;
+  width: 480px;
   flex-shrink: 0;
   border-left: 1px solid var(--border);
   background: var(--surface);
@@ -721,7 +721,7 @@ body.light .component-tag { background: var(--bg2); }
   flex-direction: column;
 }
 .panel-section-title {
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: .6px;
   color: var(--text3);
@@ -747,7 +747,7 @@ body.light .component-tag { background: var(--bg2); }
   line-height: 1;
   margin-bottom: 3px;
 }
-.stat-label { font-size: 9px; color: var(--text3); }
+.stat-label { font-size: 11px; color: var(--text3); }
 .stat-done     { color: var(--col-done); }
 .stat-progress { color: var(--col-progress); }
 .stat-pct      { color: var(--accent); }
@@ -774,18 +774,18 @@ body.light .component-tag { background: var(--bg2); }
   margin-top: 3px;
 }
 .timeline-bar.current { background: rgba(204,107,69,0.5); }
-.timeline-text { font-size: 10px; color: var(--text2); line-height: 1.4; }
-.timeline-meta { font-size: 9px; color: var(--text3); font-family: monospace; margin-top: 2px; }
-.timeline-empty { font-size: 11px; color: var(--text3); font-style: italic; }
+.timeline-text { font-size: 13px; color: var(--text2); line-height: 1.4; }
+.timeline-meta { font-size: 11px; color: var(--text3); font-family: monospace; margin-top: 2px; }
+.timeline-empty { font-size: 13px; color: var(--text3); font-style: italic; }
 
 /* Detail sections */
 .panel-detail-meta {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 6px;
-  font-size: 11px;
+  font-size: 13px;
 }
-.meta-key { font-size: 9px; color: var(--text3); text-transform: uppercase; letter-spacing: .4px; margin-bottom: 2px; }
+.meta-key { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: .4px; margin-bottom: 2px; }
 .meta-val { color: var(--text2); }
 
 .panel-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
@@ -804,7 +804,7 @@ body.light .component-tag { background: var(--bg2); }
   display: flex;
   align-items: flex-start;
   gap: 7px;
-  font-size: 11px;
+  font-size: 13px;
   color: var(--text2);
   line-height: 1.4;
   cursor: pointer;
@@ -826,11 +826,11 @@ body.light .component-tag { background: var(--bg2); }
   border: 1px solid var(--border);
   border-radius: 5px;
   padding: 7px 9px;
-  font-size: 11px;
+  font-size: 13px;
   color: var(--text2);
   line-height: 1.5;
 }
-.note-meta { font-size: 9px; color: var(--text3); font-family: monospace; margin-top: 3px; }
+.note-meta { font-size: 11px; color: var(--text3); font-family: monospace; margin-top: 3px; }
 
 .panel-note-input {
   width: 100%;
@@ -839,7 +839,7 @@ body.light .component-tag { background: var(--bg2); }
   border-radius: 5px;
   padding: 7px 9px;
   color: var(--text);
-  font-size: 11px;
+  font-size: 13px;
   font-family: inherit;
   resize: vertical;
   transition: border-color .15s;
@@ -853,12 +853,35 @@ body.light .component-tag { background: var(--bg2); }
   color: var(--accent);
   border-radius: 5px;
   padding: 5px 10px;
-  font-size: 11px;
+  font-size: 13px;
   cursor: pointer;
   transition: background .15s;
 }
 .panel-note-save:hover { background: rgba(204,107,69,0.2); }
-.panel-note-error { font-size: 10px; color: #CC4444; margin-top: 4px; }
+.panel-note-error { font-size: 11px; color: #CC4444; margin-top: 4px; }
+
+/* Notes tabs (inner tabs within the Anotações section) */
+.panel-notes-tabs {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.panel-notes-tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text3);
+  cursor: pointer;
+  transition: color .15s;
+  font-family: inherit;
+  margin-bottom: -1px;
+}
+.panel-notes-tab:hover { color: var(--text2); }
+.panel-notes-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 
 /* Tabs */
 .panel-tabs {
@@ -872,7 +895,7 @@ body.light .component-tag { background: var(--bg2); }
   border: none;
   border-bottom: 2px solid transparent;
   padding: 8px;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text3);
   cursor: pointer;

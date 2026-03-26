@@ -95,7 +95,7 @@ export class WatcherManager {
           const task = JSON.parse(content);
           upsertTask(sessionId, {
             id: task.id || basename(file, '.json'),
-            subject: task.subject || '',
+            subject: (task.subject || '').replace(/^Task\s+\d+[:.]\s*/i, ''),
             description: task.description || '',
             status: task.status || 'pending',
             activeForm: task.activeForm || '',
