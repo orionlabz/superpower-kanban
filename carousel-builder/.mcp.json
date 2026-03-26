@@ -1,0 +1,9 @@
+{
+  "carousel-builder": {
+    "command": "node",
+    "args": ["${CLAUDE_PLUGIN_ROOT}/server/mcp-server.js", "--mcp"],
+    "env": {
+      "ANTHROPIC_API_KEY": "${ANTHROPIC_API_KEY}"
+    }
+  }
+}

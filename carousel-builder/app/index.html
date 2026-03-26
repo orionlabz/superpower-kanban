@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carousel Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0a0a0a; --bg-panel: #111; --bg-input: #1a1a1a; --border: #222;
+  --text: #e8e8e8; --text-muted: #666; --text-dim: #444;
+  --font-sans: 'Inter', sans-serif; --font-serif: 'Playfair Display', serif;
+}
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font-sans); font-size: 14px; }
+
+/* Screens */
+.screen { display: none; height: 100vh; }
+.screen.active { display: flex; flex-direction: column; }
+
+/* Brief */
+#screen-brief { align-items: center; justify-content: center; padding: 40px 20px; overflow-y: auto; }
+.brief-form { width: 100%; max-width: 520px; display: flex; flex-direction: column; gap: 20px; }
+.brief-title { font-family: var(--font-serif); font-size: 28px; font-weight: 400; color: #fff; margin-bottom: 6px; }
+.brief-sub { color: var(--text-muted); font-size: 13px; }
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-label { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted); }
+.form-input, .form-textarea {
+  background: var(--bg-input); border: 1px solid var(--border); color: var(--text);
+  font-family: var(--font-sans); font-size: 14px; border-radius: 6px;
+  padding: 10px 12px; outline: none; resize: none; transition: border-color .15s; width: 100%;
+}
+.form-input:focus, .form-textarea:focus { border-color: #444; }
+.form-textarea { min-height: 80px; }
+.counter-row { display: flex; align-items: center; gap: 12px; }
+.counter-btn { width: 32px; height: 32px; border: 1px solid var(--border); background: var(--bg-input); color: var(--text); border-radius: 6px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+.counter-val { font-size: 16px; min-width: 24px; text-align: center; }
+.btn-primary { background: #fff; color: #000; border: none; border-radius: 6px; padding: 12px 24px; font-family: var(--font-sans); font-size: 14px; font-weight: 500; cursor: pointer; letter-spacing: .04em; transition: opacity .15s; }
+.btn-primary:hover { opacity: .85; }
+.btn-primary:disabled { opacity: .4; cursor: not-allowed; }
+.bridge-badge { display: none; align-items: center; gap: 6px; font-size: 12px; color: #4caf50; }
+.bridge-badge.visible { display: flex; }
+.bridge-dot { width: 7px; height: 7px; background: #4caf50; border-radius: 50%; }
+.apikey-toggle { font-size: 12px; color: var(--text-muted); cursor: pointer; text-decoration: underline; align-self: flex-start; }
+.apikey-field { display: none; flex-direction: column; gap: 6px; }
+.apikey-field.open { display: flex; }
+.session-banner { display: none; align-items: center; justify-content: space-between; background: var(--bg-input); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; font-size: 12px; color: var(--text-muted); }
+.session-banner.visible { display: flex; }
+.session-actions { display: flex; gap: 8px; }
+.btn-sm { background: transparent; border: 1px solid var(--border); color: var(--text); border-radius: 4px; padding: 4px 10px; font-size: 12px; cursor: pointer; }
+.btn-sm:hover { border-color: #555; }
+
+/* Loading */
+#screen-loading { align-items: center; justify-content: center; gap: 24px; }
+.loading-dots { display: flex; gap: 8px; }
+.loading-dot { width: 8px; height: 8px; background: #555; border-radius: 50%; animation: pulse 1.4s ease-in-out infinite; }
+.loading-dot:nth-child(2) { animation-delay: .2s; }
+.loading-dot:nth-child(3) { animation-delay: .4s; }
+@keyframes pulse { 0%,80%,100% { opacity:.3; transform:scale(.8); } 40% { opacity:1; transform:scale(1); } }
+.loading-text { color: var(--text-muted); font-size: 14px; }
+
+/* Editor */
+#screen-editor { flex-direction: column; }
+.editor-header { height: 48px; min-height: 48px; background: var(--bg-panel); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 16px; gap: 14px; }
+.editor-brand { font-family: var(--font-serif); font-size: 15px; color: #fff; white-space: nowrap; }
+.editor-topic { font-size: 12px; color: var(--text-muted); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.saved-dot { width: 7px; height: 7px; border-radius: 50%; background: transparent; transition: background .3s; flex-shrink: 0; }
+.saved-dot.on { background: #4caf50; }
+.header-btn { background: transparent; border: 1px solid var(--border); color: var(--text); border-radius: 4px; padding: 4px 10px; font-size: 12px; cursor: pointer; white-space: nowrap; }
+.header-btn:hover { border-color: #555; }
+.editor-body { display: flex; flex: 1; overflow: hidden; }
+
+/* Sidebar */
+.sidebar { width: 152px; min-width: 152px; background: var(--bg-panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; padding: 10px 8px; gap: 8px; }
+.thumb-item { cursor: pointer; border: 1px solid transparent; border-radius: 6px; overflow: hidden; }
+.thumb-item.active { border-color: #fff; }
+.thumb-wrap { width: 136px; height: 170px; overflow: hidden; border-radius: 4px; background: #111; }
+.thumb-wrap iframe { width: 1080px; height: 1350px; transform-origin: top left; transform: scale(0.1259); pointer-events: none; border: none; display: block; }
+.thumb-label { font-size: 10px; color: var(--text-muted); text-align: center; padding: 4px 0; }
+.btn-add-slide { background: transparent; border: 1px dashed var(--border); color: var(--text-muted); border-radius: 6px; padding: 8px; font-size: 12px; cursor: pointer; width: 136px; align-self: center; }
+.btn-add-slide:hover { border-color: #555; color: var(--text); }
+
+/* Preview */
+.preview-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 24px 16px; gap: 16px; overflow-y: auto; background: #050505; }
+.preview-frame-wrap iframe { border: none; border-radius: 8px; box-shadow: 0 8px 40px rgba(0,0,0,.6); display: block; }
+.template-pills { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.pill { background: transparent; border: 1px solid var(--border); color: var(--text-muted); border-radius: 20px; padding: 5px 14px; font-size: 12px; cursor: pointer; font-family: var(--font-sans); transition: all .15s; }
+.pill:hover { border-color: #555; color: var(--text); }
+.pill.active { background: #fff; color: #000; border-color: #fff; }
+
+/* Edit panel */
+.edit-panel { width: 288px; min-width: 288px; background: var(--bg-panel); border-left: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; padding: 16px; gap: 14px; }
+.panel-header { display: flex; align-items: center; justify-content: space-between; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+.panel-title { font-size: 12px; color: var(--text-muted); letter-spacing: .08em; }
+.btn-delete { background: transparent; border: none; color: #555; font-size: 12px; cursor: pointer; padding: 2px 6px; }
+.btn-delete:hover { color: #e55; }
+.field-group { display: flex; flex-direction: column; gap: 6px; }
+.field-label { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted); }
+.field-input, .field-textarea {
+  background: var(--bg-input); border: 1px solid var(--border); color: var(--text);
+  font-family: var(--font-sans); font-size: 13px; border-radius: 5px;
+  padding: 8px 10px; outline: none; resize: none; transition: border-color .15s; width: 100%;
+}
+.field-input:focus, .field-textarea:focus { border-color: #444; }
+.field-textarea { min-height: 64px; }
+.list-items-wrap, .steps-wrap { display: flex; flex-direction: column; gap: 6px; }
+.list-item-row { display: flex; gap: 6px; align-items: center; }
+.list-item-row .field-input { flex: 1; }
+.step-row { background: #161616; border: 1px solid var(--border); border-radius: 5px; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+.step-row-top { display: flex; gap: 6px; align-items: center; }
+.step-label-input { width: 80px !important; }
+.btn-remove { background: transparent; border: none; color: #555; font-size: 14px; cursor: pointer; padding: 2px 4px; flex-shrink: 0; }
+.btn-remove:hover { color: #e55; }
+.btn-add-item { background: transparent; border: 1px dashed var(--border); color: var(--text-muted); border-radius: 4px; padding: 5px 10px; font-size: 11px; cursor: pointer; }
+.btn-add-item:hover { border-color: #555; color: var(--text); }
+.drop-zone { border: 1px dashed var(--border); border-radius: 6px; padding: 16px; text-align: center; cursor: pointer; position: relative; transition: border-color .15s; }
+.drop-zone:hover { border-color: #555; }
+.drop-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.drop-zone-icon { font-size: 18px; color: var(--text-muted); margin-bottom: 6px; }
+.drop-zone-text { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
+.img-preview-wrap { display: flex; align-items: center; gap: 10px; }
+.img-preview { height: 64px; border-radius: 4px; object-fit: cover; }
+.btn-remove-img { background: transparent; border: none; color: var(--text-muted); font-size: 11px; cursor: pointer; text-decoration: underline; }
+.refine-section { border-top: 1px solid var(--border); padding-top: 12px; }
+.btn-refine { background: transparent; border: 1px solid #333; color: #888; border-radius: 5px; padding: 8px 12px; font-size: 12px; cursor: pointer; width: 100%; transition: all .15s; }
+.btn-refine:hover { border-color: #555; color: var(--text); }
+.refine-input-wrap { display: none; flex-direction: column; gap: 8px; margin-top: 8px; }
+.refine-input-wrap.open { display: flex; }
+.refine-actions { display: flex; gap: 6px; }
+.btn-confirm { background: #fff; color: #000; border: none; border-radius: 4px; padding: 6px 14px; font-size: 12px; font-weight: 500; cursor: pointer; }
+.btn-cancel { background: transparent; border: 1px solid var(--border); color: var(--text-muted); border-radius: 4px; padding: 6px 12px; font-size: 12px; cursor: pointer; }
+
+/* Settings */
+#screen-settings { flex-direction: column; }
+.settings-header { height: 48px; min-height: 48px; background: var(--bg-panel); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 20px; gap: 16px; }
+.settings-body { flex: 1; display: flex; align-items: flex-start; justify-content: center; padding: 40px 20px; overflow-y: auto; }
+.settings-form { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 20px; }
+.settings-title { font-family: var(--font-serif); font-size: 22px; font-weight: 400; }
+</style>
+</head>
+<body>
+
+<!-- Screen: Brief -->
+<div id="screen-brief" class="screen active">
+  <form class="brief-form" onsubmit="return false">
+    <div>
+      <div class="brief-title">Carousel Builder</div>
+      <div class="brief-sub">Crie carrosséis editoriais para Instagram</div>
+    </div>
+    <div id="bridge-badge" class="bridge-badge">
+      <div class="bridge-dot"></div> Bridge conectado
+    </div>
+    <div class="form-group">
+      <label class="form-label">Tema / assunto</label>
+      <textarea id="inp-topic" class="form-textarea" placeholder="Ex: Por que criadores digitais fracassam nos primeiros 90 dias" rows="3"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Audiência</label>
+      <input id="inp-audience" class="form-input" type="text" placeholder="Ex: Criadores digitais brasileiros">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Número de slides</label>
+      <div class="counter-row">
+        <button type="button" class="counter-btn" onclick="adjustCount(-1)">−</button>
+        <span id="count-val" class="counter-val">8</span>
+        <button type="button" class="counter-btn" onclick="adjustCount(1)">+</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">CTA final</label>
+      <input id="inp-cta" class="form-input" type="text" placeholder="Ex: Salve este post e aplique hoje">
+    </div>
+    <span class="apikey-toggle" onclick="toggleApiKey()">Configurar API Key (fallback)</span>
+    <div id="apikey-field" class="apikey-field">
+      <label class="form-label">Anthropic API Key</label>
+      <input id="inp-apikey" class="form-input" type="password" placeholder="sk-ant-...">
+    </div>
+    <div id="session-banner" class="session-banner">
+      <span id="session-label"></span>
+      <div class="session-actions">
+        <button class="btn-sm" onclick="restoreSession()">Continuar</button>
+        <button class="btn-sm" onclick="clearSession()">Novo</button>
+      </div>
+    </div>
+    <button id="btn-gen" class="btn-primary" onclick="handleGenerate()">Gerar carrossel</button>
+  </form>
+</div>
+
+<!-- Screen: Loading -->
+<div id="screen-loading" class="screen">
+  <div class="loading-dots">
+    <div class="loading-dot"></div>
+    <div class="loading-dot"></div>
+    <div class="loading-dot"></div>
+  </div>
+  <div id="loading-text" class="loading-text">Estruturando o roteiro…</div>
+</div>
+
+<!-- Screen: Editor -->
+<div id="screen-editor" class="screen">
+  <div class="editor-header">
+    <div id="editor-brand" class="editor-brand">⬥ Marca</div>
+    <div id="editor-topic" class="editor-topic"></div>
+    <div id="saved-dot" class="saved-dot"></div>
+    <button class="header-btn" onclick="openSettings()">⚙</button>
+    <button class="header-btn" onclick="showScreen('brief')">+ Novo</button>
+  </div>
+  <div class="editor-body">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="preview-col" id="preview-col">
+      <div id="preview-wrap" class="preview-frame-wrap"></div>
+      <div class="template-pills">
+        <button class="pill" data-tpl="cover"   onclick="changeTpl('cover')">cover</button>
+        <button class="pill" data-tpl="split"   onclick="changeTpl('split')">split</button>
+        <button class="pill" data-tpl="dark"    onclick="changeTpl('dark')">conteúdo</button>
+        <button class="pill" data-tpl="steps"   onclick="changeTpl('steps')">etapas</button>
+        <button class="pill" data-tpl="overlay" onclick="changeTpl('overlay')">foto+texto</button>
+        <button class="pill" data-tpl="cta"     onclick="changeTpl('cta')">cta</button>
+      </div>
+    </div>
+    <div class="edit-panel" id="edit-panel"></div>
+  </div>
+</div>
+
+<!-- Screen: Settings -->
+<div id="screen-settings" class="screen">
+  <div class="settings-header">
+    <button class="header-btn" onclick="saveSettings()">← Salvar e voltar</button>
+    <span style="font-size:13px;color:#888;">Configurações de Marca</span>
+  </div>
+  <div class="settings-body">
+    <div class="settings-form">
+      <div class="settings-title">Marca</div>
+      <div class="form-group">
+        <label class="form-label">Símbolo / logo</label>
+        <input id="set-logo" class="form-input" type="text" placeholder="⬥">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nome da marca</label>
+        <input id="set-name" class="form-input" type="text" placeholder="Minha Marca">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Label esquerdo da nav</label>
+        <input id="set-nav-left" class="form-input" type="text" placeholder="CATEGORIA">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Label direito da nav</label>
+        <input id="set-nav-right" class="form-input" type="text" placeholder="SÉRIE">
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── Constants ────────────────────────────────────────────────────────────────
+const BRIDGE = 'http://localhost:3456';
+const LS_KEY = 'cb-v3';
+const LOADING_MSGS = ['Estruturando o roteiro…', 'Criando os slides…', 'Refinando o conteúdo…'];
+const SLIDE_DEFAULTS = {
+  cover:   { template:'cover', headline:'', headline_italic:'', body:'' },
+  split:   { template:'split', headline:'', headline_italic:'', body:'' },
+  dark:    { template:'dark', section_number:'', section_title:'', body:'', list_items:[], conclusion:'' },
+  steps:   { template:'steps', section_title:null, steps:[], call_to_action:'', call_to_action_italic:'' },
+  overlay: { template:'overlay', section_number:'', section_title:'', headline:'', body:'' },
+  cta:     { template:'cta', headline:'', headline_italic:'', body:'', cta_text:'', cta_word:'', cta_suffix:'' },
+};
+
+// ─── State ────────────────────────────────────────────────────────────────────
+const S = {
+  slides: [], active: 0, slideCount: 8,
+  brief: { topic:'', audience:'', slideCount:8, cta:'' },
+  brand: { brand_logo:'⬥', brand_name:'Marca', nav_left:'CATEGORIA', nav_right:'SÉRIE' },
+  bridgeAvailable: false,
+  images: {},
+};
+
+// ─── Screen routing ───────────────────────────────────────────────────────────
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+}
+
+// ─── Brief controls ───────────────────────────────────────────────────────────
+function adjustCount(delta) {
+  S.slideCount = Math.min(12, Math.max(3, S.slideCount + delta));
+  document.getElementById('count-val').textContent = S.slideCount;
+}
+function toggleApiKey() {
+  document.getElementById('apikey-field').classList.toggle('open');
+}
+
+// ─── Bridge check ─────────────────────────────────────────────────────────────
+async function checkBridge() {
+  try {
+    const ctrl = new AbortController();
+    setTimeout(() => ctrl.abort(), 1200);
+    const r = await fetch(BRIDGE + '/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ topic: '_ping', slideCount: 1 }),
+      signal: ctrl.signal,
+    });
+    if (r.status !== 404) {
+      S.bridgeAvailable = true;
+      document.getElementById('bridge-badge').classList.add('visible');
+    }
+  } catch { /* bridge offline */ }
+}
+
+// ─── Persistence ──────────────────────────────────────────────────────────────
+let saveTimer = null;
+function scheduleSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(persist, 400);
+}
+function persist() {
+  localStorage.setItem(LS_KEY, JSON.stringify({
+    brief: S.brief, brand: S.brand, slides: S.slides, active: S.active,
+  }));
+  const dot = document.getElementById('saved-dot');
+  if (dot) { dot.classList.add('on'); setTimeout(() => dot.classList.remove('on'), 1400); }
+}
+function loadPersistedState() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return;
+    const saved = JSON.parse(raw);
+    if (saved.brand) Object.assign(S.brand, saved.brand);
+    if (saved.slides && saved.slides.length > 0) {
+      S.slides = saved.slides;
+      S.active = saved.active || 0;
+      if (saved.brief) S.brief = saved.brief;
+      document.getElementById('session-label').textContent =
+        'Continuar: ' + (S.brief.topic || '').slice(0, 40) + '…';
+      document.getElementById('session-banner').classList.add('visible');
+    }
+  } catch {}
+}
+function restoreSession() {
+  document.getElementById('session-banner').classList.remove('visible');
+  document.getElementById('editor-topic').textContent = S.brief.topic;
+  syncEditorBrand();
+  renderAll();
+  showScreen('editor');
+}
+function clearSession() {
+  localStorage.removeItem(LS_KEY);
+  document.getElementById('session-banner').classList.remove('visible');
+}
+
+// ─── Settings ─────────────────────────────────────────────────────────────────
+function openSettings() {
+  document.getElementById('set-logo').value = S.brand.brand_logo;
+  document.getElementById('set-name').value = S.brand.brand_name;
+  document.getElementById('set-nav-left').value = S.brand.nav_left;
+  document.getElementById('set-nav-right').value = S.brand.nav_right;
+  showScreen('settings');
+}
+function saveSettings() {
+  S.brand.brand_logo = document.getElementById('set-logo').value     || '⬥';
+  S.brand.brand_name = document.getElementById('set-name').value     || 'Marca';
+  S.brand.nav_left   = document.getElementById('set-nav-left').value  || 'CATEGORIA';
+  S.brand.nav_right  = document.getElementById('set-nav-right').value || 'SÉRIE';
+  syncEditorBrand();
+  renderAll();
+  scheduleSave();
+  showScreen('editor');
+}
+function syncEditorBrand() {
+  const el = document.getElementById('editor-brand');
+  if (el) el.textContent = S.brand.brand_logo + ' ' + S.brand.brand_name;
+}
+
+// ─── Slide renderers ──────────────────────────────────────────────────────────
+const PF  = "font-family:'Playfair Display',serif;";
+const INT = "font-family:'Inter',sans-serif;";
+
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function navBar() {
+  const { nav_left='CATEGORIA', nav_right='SÉRIE' } = S.brand;
+  return `<div style="${INT}display:flex;align-items:center;gap:22px;font-size:22px;letter-spacing:.18em;color:#303030;text-transform:uppercase;margin-bottom:96px;">
+    <span>${esc(nav_left)}</span>
+    <div style="flex:1;height:1px;background:#1e1e1e;"></div>
+    <span>${esc(nav_right)}</span>
+  </div>`;
+}
+
+function footerBar() {
+  const { brand_logo='⬥', brand_name='Marca' } = S.brand;
+  return `<div style="${INT}display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:36px;">
+    <span style="font-size:28px;color:#252525;">${esc(brand_logo)} ${esc(brand_name)}</span>
+    <span style="font-size:22px;letter-spacing:.14em;color:#252525;text-transform:uppercase;">${esc(brand_name.toUpperCase())}</span>
+  </div>`;
+}
+
+const RENDERERS = {
+  cover(slide, img) {
+    const bg = img
+      ? `<div style="position:absolute;inset:0;"><img src="${img}" style="width:100%;height:100%;object-fit:cover;filter:saturate(0.6);"><div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.97) 0%,rgba(0,0,0,.6) 42%,transparent 72%);"></div></div>`
+      : `<div style="position:absolute;inset:0;background:linear-gradient(160deg,#2a3540,#1a2228);"></div>`;
+    const { brand_logo='⬥', brand_name='Marca' } = S.brand;
+    return `<div style="position:relative;width:1080px;height:1350px;overflow:hidden;background:#000;">
+      ${bg}
+      <div style="position:absolute;inset:0;display:flex;flex-direction:column;padding:54px 76px 60px;">
+        <div style="${INT}font-size:22px;color:#fff;opacity:.9;">${esc(brand_logo)} ${esc(brand_name)}</div>
+        <div style="flex:1;"></div>
+        <div style="${PF}font-size:84px;line-height:1.05;font-weight:400;color:#fff;margin-bottom:28px;">
+          ${esc(slide.headline)}<em> ${esc(slide.headline_italic)}</em>
+        </div>
+        <div style="${INT}font-size:27px;color:#777;line-height:1.5;">${esc(slide.body)}</div>
+      </div>
+    </div>`;
+  },
+
+  split(slide, img) {
+    const col = img
+      ? `<img src="${img}" style="width:100%;height:100%;object-fit:cover;filter:grayscale(90%) contrast(1.05);">`
+      : `<div style="width:100%;height:100%;background:linear-gradient(160deg,#2a3540,#1a2228);"></div>`;
+    return `<div style="width:1080px;height:1350px;display:flex;background:#000;">
+      <div style="flex:0 0 52%;display:flex;flex-direction:column;padding:54px 52px 60px 76px;">
+        ${navBar()}
+        <div style="${PF}font-size:62px;line-height:1.1;font-weight:400;color:#fff;margin-bottom:28px;">
+          ${esc(slide.headline)}<em> ${esc(slide.headline_italic)}</em>
+        </div>
+        <div style="${INT}font-size:27px;color:#777;line-height:1.5;margin-bottom:auto;">${esc(slide.body)}</div>
+        ${footerBar()}
+      </div>
+      <div style="flex:0 0 48%;overflow:hidden;">${col}</div>
+    </div>`;
+  },
+
+  dark(slide) {
+    const items = (slide.list_items || []).map(item =>
+      `<div style="display:flex;gap:16px;margin-bottom:16px;">
+        <span style="${INT}color:#555;font-size:27px;flex-shrink:0;">·</span>
+        <span style="${INT}font-size:27px;color:#666;line-height:1.45;">${esc(item)}</span>
+       </div>`
+    ).join('');
+    return `<div style="width:1080px;height:1350px;background:#000;display:flex;flex-direction:column;padding:54px 76px 60px;">
+      ${navBar()}
+      <div style="${INT}font-size:22px;letter-spacing:.18em;color:#333;text-transform:uppercase;margin-bottom:16px;">${esc(slide.section_number)}</div>
+      <div style="${PF}font-size:62px;line-height:1.1;font-weight:400;color:#fff;margin-bottom:36px;">${esc(slide.section_title)}</div>
+      <div style="${INT}font-size:27px;color:#666;line-height:1.5;margin-bottom:32px;">${esc(slide.body)}</div>
+      <div style="margin-bottom:24px;">${items}</div>
+      <div style="${INT}font-size:27px;color:#555;line-height:1.5;margin-bottom:auto;">${esc(slide.conclusion)}</div>
+      ${footerBar()}
+    </div>`;
+  },
+
+  steps(slide) {
+    const steps = (slide.steps || []).map(s =>
+      `<div style="margin-bottom:24px;">
+        <span style="${INT}font-size:27px;font-weight:500;color:#fff;">${esc(s.label)}:</span>
+        <span style="${INT}font-size:27px;color:#666;"> ${esc(s.text)}</span>
+       </div>`
+    ).join('');
+    return `<div style="width:1080px;height:1350px;background:#000;display:flex;flex-direction:column;padding:54px 76px 60px;">
+      ${navBar()}
+      ${slide.section_title ? `<div style="${PF}font-size:48px;font-weight:400;color:#fff;margin-bottom:36px;">${esc(slide.section_title)}</div>` : ''}
+      <div style="flex:1;">${steps}</div>
+      <div style="${PF}font-size:62px;font-weight:400;color:#fff;line-height:1.1;margin-bottom:auto;">
+        ${esc(slide.call_to_action)}<em> ${esc(slide.call_to_action_italic)}</em>
+      </div>
+      ${footerBar()}
+    </div>`;
+  },
+
+  overlay(slide, img) {
+    const photo = img
+      ? `<img src="${img}" style="width:100%;height:100%;object-fit:cover;">`
+      : `<div style="width:100%;height:100%;background:linear-gradient(160deg,#2a3540,#1a2228);"></div>`;
+    return `<div style="width:1080px;height:1350px;background:#000;display:flex;flex-direction:column;padding:14px 14px 0;">
+      <div style="height:680px;border-radius:18px;overflow:hidden;position:relative;flex-shrink:0;">
+        ${photo}
+        <div style="position:absolute;bottom:0;left:0;right:0;height:200px;background:linear-gradient(to top,#000,transparent);"></div>
+      </div>
+      <div style="flex:1;padding:32px 62px 60px;display:flex;flex-direction:column;">
+        ${navBar()}
+        <div style="${INT}font-size:22px;letter-spacing:.18em;color:#333;text-transform:uppercase;margin-bottom:12px;">${esc(slide.section_number)}</div>
+        <div style="${PF}font-size:62px;font-weight:400;color:#fff;line-height:1.1;margin-bottom:16px;">${esc(slide.section_title)}</div>
+        <div style="${PF}font-size:36px;font-weight:400;font-style:italic;color:#aaa;margin-bottom:20px;">${esc(slide.headline)}</div>
+        <div style="${INT}font-size:24px;color:#666;line-height:1.5;margin-bottom:auto;">${esc(slide.body)}</div>
+        ${footerBar()}
+      </div>
+    </div>`;
+  },
+
+  cta(slide) {
+    const { brand_logo='⬥', brand_name='Marca' } = S.brand;
+    return `<div style="width:1080px;height:1350px;background:#000;border:1px solid #161616;display:flex;flex-direction:column;padding:54px 76px 60px;">
+      <div style="${INT}font-size:22px;color:#fff;margin-bottom:auto;">${esc(brand_logo)} ${esc(brand_name)}</div>
+      <div style="${PF}font-size:84px;line-height:1.05;font-weight:400;font-style:italic;color:#fff;margin-bottom:40px;">
+        ${esc(slide.headline)}<em> ${esc(slide.headline_italic)}</em>
+      </div>
+      <div style="${INT}font-size:27px;color:#444;line-height:1.5;margin-bottom:60px;">${esc(slide.body)}</div>
+      <div style="${INT}font-size:32px;color:#fff;line-height:1.4;">
+        ${esc(slide.cta_text)}
+        <span style="text-decoration:underline;text-underline-offset:4px;">${esc(slide.cta_word)}</span>
+        ${esc(slide.cta_suffix)}
+      </div>
+    </div>`;
+  },
+};
+
+function slideDoc(index) {
+  const slide = S.slides[index];
+  if (!slide) return '<html><body style="background:#111;width:1080px;height:1350px;"></body></html>';
+  const fn = RENDERERS[slide.template] || RENDERERS.dark;
+  const body = fn(slide, S.images[index] || null);
+  return `<!DOCTYPE html><html><head>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>*{margin:0;padding:0;box-sizing:border-box;}</style>
+    </head><body>${body}</body></html>`;
+}
+
+// ─── Render functions ─────────────────────────────────────────────────────────
+function renderAll() { renderSidebar(); renderPreview(); renderPanel(); }
+
+function renderSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  sidebar.innerHTML = '';
+  S.slides.forEach((slide, i) => {
+    const item = document.createElement('div');
+    item.className = 'thumb-item' + (i === S.active ? ' active' : '');
+    item.onclick = () => setActive(i);
+    const wrap = document.createElement('div');
+    wrap.className = 'thumb-wrap';
+    const iframe = document.createElement('iframe');
+    iframe.srcdoc = slideDoc(i);
+    iframe.title = 'Slide ' + (i + 1);
+    wrap.appendChild(iframe);
+    const label = document.createElement('div');
+    label.className = 'thumb-label';
+    label.textContent = (i + 1) + ' · ' + slide.template;
+    item.appendChild(wrap);
+    item.appendChild(label);
+    sidebar.appendChild(item);
+  });
+  const addBtn = document.createElement('button');
+  addBtn.className = 'btn-add-slide';
+  addBtn.textContent = '+ Slide';
+  addBtn.onclick = addSlide;
+  sidebar.appendChild(addBtn);
+}
+
+function renderPreview() {
+  const col = document.getElementById('preview-col');
+  const wrap = document.getElementById('preview-wrap');
+  const avH = col.clientHeight - 80;
+  const avW = col.clientWidth - 32;
+  const scale = Math.min(avH / 1350, avW / 1080, 0.50);
+  const w = Math.round(1080 * scale);
+  const h = Math.round(1350 * scale);
+  wrap.innerHTML = '';
+  const iframe = document.createElement('iframe');
+  iframe.style.width = w + 'px';
+  iframe.style.height = h + 'px';
+  iframe.srcdoc = slideDoc(S.active);
+  iframe.title = 'Preview';
+  wrap.appendChild(iframe);
+  document.querySelectorAll('.pill').forEach(p =>
+    p.classList.toggle('active', p.dataset.tpl === (S.slides[S.active] || {}).template)
+  );
+}
+
+function renderPanel() {
+  const panel = document.getElementById('edit-panel');
+  const slide = S.slides[S.active];
+  if (!slide) { panel.innerHTML = ''; return; }
+
+  const tpl = slide.template;
+  const hasImg = ['cover','split','overlay'].includes(tpl);
+  const imgSrc = S.images[S.active];
+  const canDel = S.slides.length > 1;
+
+  function fText(key, label, val) {
+    return `<div class="field-group"><div class="field-label">${label}</div>
+      <input class="field-input" value="${esc(val||'')}" oninput="setField('${key}',this.value)"></div>`;
+  }
+  function fArea(key, label, val) {
+    return `<div class="field-group"><div class="field-label">${label}</div>
+      <textarea class="field-textarea" oninput="setField('${key}',this.value)">${esc(val||'')}</textarea></div>`;
+  }
+
+  let html = `<div class="panel-header">
+    <div class="panel-title">Slide ${S.active+1} · ${tpl}</div>
+    ${canDel ? '<button class="btn-delete" onclick="deleteSlide()">Excluir</button>' : ''}
+  </div>`;
+
+  if (hasImg) {
+    html += `<div class="field-group"><div class="field-label">Imagem</div>
+      ${imgSrc
+        ? `<div class="img-preview-wrap">
+             <img class="img-preview" src="${imgSrc}">
+             <button class="btn-remove-img" onclick="removeImg()">Remover</button>
+           </div>`
+        : `<div class="drop-zone">
+             <input type="file" accept="image/*" onchange="uploadImg(event)">
+             <div class="drop-zone-icon">⊕</div>
+             <div class="drop-zone-text">Clique para fazer upload<br>JPG · PNG · WEBP</div>
+           </div>`
+      }
+    </div>`;
+  }
+
+  if (tpl === 'cover' || tpl === 'split') {
+    html += fText('headline','Headline',slide.headline);
+    html += fText('headline_italic','Headline (itálico)',slide.headline_italic);
+    html += fArea('body','Corpo',slide.body);
+  }
+  if (tpl === 'dark') {
+    html += fText('section_number','Número da seção',slide.section_number);
+    html += fText('section_title','Título da seção',slide.section_title);
+    html += fArea('body','Corpo',slide.body);
+    html += `<div class="field-group"><div class="field-label">Itens da lista</div>
+      <div class="list-items-wrap">
+        ${(slide.list_items||[]).map((item,i) =>
+          `<div class="list-item-row">
+            <input class="field-input" value="${esc(item)}" oninput="setListItem(${i},this.value)">
+            <button class="btn-remove" onclick="removeListItem(${i})">×</button>
+          </div>`
+        ).join('')}
+      </div>
+      ${(slide.list_items||[]).length < 4 ? '<button class="btn-add-item" onclick="addListItem()">+ Adicionar</button>' : ''}
+    </div>`;
+    html += fArea('conclusion','Conclusão',slide.conclusion);
+  }
+  if (tpl === 'steps') {
+    html += fText('section_title','Título (opcional)',slide.section_title||'');
+    html += `<div class="field-group"><div class="field-label">Etapas</div>
+      <div class="steps-wrap">
+        ${(slide.steps||[]).map((step,i) =>
+          `<div class="step-row">
+            <div class="step-row-top">
+              <input class="field-input step-label-input" value="${esc(step.label)}" placeholder="Etapa ${i+1}" oninput="setStep(${i},'label',this.value)">
+              <button class="btn-remove" onclick="removeStep(${i})">×</button>
+            </div>
+            <input class="field-input" value="${esc(step.text)}" placeholder="Texto da etapa" oninput="setStep(${i},'text',this.value)">
+          </div>`
+        ).join('')}
+      </div>
+      ${(slide.steps||[]).length < 4 ? '<button class="btn-add-item" onclick="addStep()">+ Etapa</button>' : ''}
+    </div>`;
+    html += fText('call_to_action','Chamada final',slide.call_to_action);
+    html += fText('call_to_action_italic','Chamada final (itálico)',slide.call_to_action_italic);
+  }
+  if (tpl === 'overlay') {
+    html += fText('section_number','Número da seção',slide.section_number);
+    html += fText('section_title','Título',slide.section_title);
+    html += fText('headline','Headline',slide.headline);
+    html += fArea('body','Corpo',slide.body);
+  }
+  if (tpl === 'cta') {
+    html += fText('headline','Headline',slide.headline);
+    html += fText('headline_italic','Headline (itálico)',slide.headline_italic);
+    html += fArea('body','Corpo',slide.body);
+    html += fText('cta_text','Texto do CTA',slide.cta_text);
+    html += fText('cta_word','Palavra em destaque',slide.cta_word);
+    html += fText('cta_suffix','Sufixo do CTA',slide.cta_suffix);
+  }
+
+  html += `<div class="refine-section">
+    <button class="btn-refine" onclick="toggleRefine()">✦ Refinar com IA</button>
+    <div id="refine-wrap" class="refine-input-wrap">
+      <textarea id="refine-instr" class="field-textarea" placeholder="O que você quer mudar neste slide?" rows="3"></textarea>
+      <div class="refine-actions">
+        <button id="btn-refine-ok" class="btn-confirm" onclick="doRefine()">Refinar</button>
+        <button class="btn-cancel" onclick="toggleRefine()">Cancelar</button>
+      </div>
+    </div>
+  </div>`;
+
+  panel.innerHTML = html;
+}
+
+// ─── Slide mutations ──────────────────────────────────────────────────────────
+function setActive(i) { S.active = i; renderAll(); }
+
+function setField(key, val) {
+  S.slides[S.active][key] = val;
+  refreshThumb(S.active); renderPreview(); scheduleSave();
+}
+function setListItem(i, val) {
+  S.slides[S.active].list_items[i] = val;
+  refreshThumb(S.active); renderPreview(); scheduleSave();
+}
+function addListItem() {
+  if ((S.slides[S.active].list_items||[]).length >= 4) return;
+  S.slides[S.active].list_items = [...(S.slides[S.active].list_items||[]), ''];
+  renderPanel(); renderPreview(); scheduleSave();
+}
+function removeListItem(i) {
+  S.slides[S.active].list_items.splice(i, 1);
+  renderPanel(); renderPreview(); scheduleSave();
+}
+function setStep(i, field, val) {
+  S.slides[S.active].steps[i][field] = val;
+  refreshThumb(S.active); renderPreview(); scheduleSave();
+}
+function addStep() {
+  const steps = S.slides[S.active].steps || [];
+  if (steps.length >= 4) return;
+  steps.push({ label: 'Etapa ' + (steps.length + 1), text: '' });
+  S.slides[S.active].steps = steps;
+  renderPanel(); renderPreview(); scheduleSave();
+}
+function removeStep(i) {
+  S.slides[S.active].steps.splice(i, 1);
+  renderPanel(); renderPreview(); scheduleSave();
+}
+function deleteSlide() {
+  if (S.slides.length <= 1) return;
+  S.slides.splice(S.active, 1);
+  delete S.images[S.active];
+  S.active = Math.min(S.active, S.slides.length - 1);
+  renderAll(); scheduleSave();
+}
+function addSlide() {
+  S.slides.splice(S.active + 1, 0, { ...SLIDE_DEFAULTS.dark });
+  setActive(S.active + 1);
+  scheduleSave();
+}
+function changeTpl(tpl) {
+  S.slides[S.active] = { ...SLIDE_DEFAULTS[tpl] };
+  renderAll(); scheduleSave();
+}
+function uploadImg(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    S.images[S.active] = e.target.result;
+    renderPanel(); refreshThumb(S.active); renderPreview();
+  };
+  reader.readAsDataURL(file);
+}
+function removeImg() {
+  delete S.images[S.active];
+  renderPanel(); refreshThumb(S.active); renderPreview();
+}
+function refreshThumb(index) {
+  const items = document.querySelectorAll('.thumb-item');
+  const item = items[index];
+  if (!item) return;
+  const iframe = item.querySelector('iframe');
+  if (iframe) iframe.srcdoc = slideDoc(index);
+}
+
+// ─── Refine with AI ───────────────────────────────────────────────────────────
+function toggleRefine() {
+  document.getElementById('refine-wrap').classList.toggle('open');
+}
+async function doRefine() {
+  const instr = document.getElementById('refine-instr').value.trim();
+  if (!instr) return;
+  const btn = document.getElementById('btn-refine-ok');
+  btn.textContent = '…'; btn.disabled = true;
+  try {
+    const refined = await callRefine(S.slides[S.active], instr);
+    S.slides[S.active] = refined;
+    renderAll(); scheduleSave();
+  } catch (e) {
+    alert('Erro ao refinar: ' + e.message);
+  } finally { btn.textContent = 'Refinar'; btn.disabled = false; }
+}
+
+// ─── Loading ──────────────────────────────────────────────────────────────────
+let loadingTimer = null;
+function startLoading() {
+  let i = 0;
+  const el = document.getElementById('loading-text');
+  el.textContent = LOADING_MSGS[0];
+  loadingTimer = setInterval(() => {
+    i = (i + 1) % LOADING_MSGS.length;
+    el.textContent = LOADING_MSGS[i];
+  }, 2000);
+}
+function stopLoading() { clearInterval(loadingTimer); }
+
+// ─── Generate ─────────────────────────────────────────────────────────────────
+async function handleGenerate() {
+  const topic = document.getElementById('inp-topic').value.trim();
+  if (!topic) { alert('Insira o tema do carrossel'); return; }
+  S.brief = {
+    topic,
+    audience: document.getElementById('inp-audience').value.trim(),
+    slideCount: S.slideCount,
+    cta: document.getElementById('inp-cta').value.trim(),
+  };
+  showScreen('loading');
+  startLoading();
+  try {
+    const result = await callGenerate(S.brief);
+    S.slides = result.slides || [];
+    S.active = 0;
+    S.images = {};
+    document.getElementById('editor-topic').textContent = topic;
+    syncEditorBrand();
+    renderAll();
+    showScreen('editor');
+    scheduleSave();
+  } catch (e) {
+    alert('Erro ao gerar: ' + e.message);
+    showScreen('brief');
+  } finally { stopLoading(); }
+}
+
+// ─── API calls ────────────────────────────────────────────────────────────────
+async function callGenerate(brief) {
+  if (S.bridgeAvailable) {
+    const r = await fetch(BRIDGE + '/generate', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(brief),
+    });
+    if (!r.ok) throw new Error('Bridge error ' + r.status);
+    return r.json();
+  }
+  const key = document.getElementById('inp-apikey').value.trim();
+  if (!key) throw new Error('Bridge offline. Configure a API Key como fallback.');
+  const { topic, audience, slideCount=8, cta } = brief;
+  const prompt = `Crie um carrossel com ${slideCount} slides sobre: "${topic}". Audiência: ${audience||'geral'}. CTA: ${cta||'Siga para mais'}. Primeiro slide: cover. Último: cta. Retorne: { "slides": [...] }`;
+  return anthropicDirect(prompt, key, 4096);
+}
+
+async function callRefine(slide, instruction) {
+  if (S.bridgeAvailable) {
+    const r = await fetch(BRIDGE + '/refine', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slide, instruction }),
+    });
+    if (!r.ok) throw new Error('Bridge error ' + r.status);
+    return r.json();
+  }
+  const key = document.getElementById('inp-apikey').value.trim();
+  if (!key) throw new Error('Bridge offline. Configure a API Key como fallback.');
+  const prompt = `Refine este slide (template: ${slide.template}). Instrução: "${instruction}". Slide: ${JSON.stringify(slide)}. Retorne SOMENTE o JSON do slide.`;
+  return anthropicDirect(prompt, key, 1024);
+}
+
+const SYSTEM = `Você é estrategista de conteúdo especializado em Instagram editorial.
+Crie carrosséis no estilo dark-luxury: direto, inteligente, provocativo mas refinado.
+Tom editorial, em português brasileiro.
+RESPONDA APENAS COM JSON VÁLIDO. Sem markdown, sem backticks, sem texto extra.`;
+
+async function anthropicDirect(userPrompt, apiKey, maxTokens) {
+  const r = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: maxTokens,
+      system: SYSTEM,
+      messages: [{ role: 'user', content: userPrompt }],
+    }),
+  });
+  const data = await r.json();
+  if (data.error) throw new Error(data.error.message);
+  return JSON.parse(data.content[0].text);
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+checkBridge();
+loadPersistedState();
+</script>
+</body>
+</html>

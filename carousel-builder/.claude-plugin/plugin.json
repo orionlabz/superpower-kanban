@@ -1,0 +1,10 @@
+{
+  "name": "carousel-builder",
+  "version": "0.1.0",
+  "description": "Local visual editor for creating dark-luxury editorial Instagram carousels. HTTP bridge on localhost:3456, MCP tools (generate_carousel, refine_slide, brainstorm_ideas) auto-registered.",
+  "author": {
+    "name": "OrionLabz"
+  },
+  "license": "MIT",
+  "keywords": ["instagram", "carousel", "content", "editorial", "dark-luxury"]
+}
