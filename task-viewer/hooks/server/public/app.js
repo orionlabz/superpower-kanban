@@ -59,6 +59,7 @@ function handleKanbanUpdate(columns) {
   allColumns = columns;
   updateComponentFilters(columns);
   renderBoard();
+  if (!selectedTask) updatePanelStats();
 }
 
 // === Filters ===
@@ -161,13 +162,13 @@ function renderListView() {
       <span class="list-section-count">${tasks.length}</span>
       <span class="list-section-chevron">▶</span>
     `;
+    const rows = document.createElement('div');
+    rows.className = 'list-rows' + (startCollapsed ? ' hidden' : '');
+
     header.addEventListener('click', () => {
       const collapsed = section.classList.toggle('collapsed');
       rows.classList.toggle('hidden', collapsed);
     });
-
-    const rows = document.createElement('div');
-    rows.className = 'list-rows' + (startCollapsed ? ' hidden' : '');
 
     for (const task of tasks) {
       const row = document.createElement('div');
@@ -246,10 +247,15 @@ async function loadInitialState() {
     const health = await fetch('/api/health').then(r => r.json());
     const name = health.projectCwd ? health.projectCwd.split('/').pop() : '—';
     $('project-name').textContent = name;
+    $('panel-project-name').textContent = name;
+    if (health.branch) $('panel-branch').textContent = health.branch;
 
     // Load kanban data
     const columns = await fetch('/api/kanban').then(r => r.json());
     handleKanbanUpdate(columns);
+
+    // Load panel idle data
+    loadPanelIdle();
   } catch { /* server may not be ready yet */ }
 }
 
@@ -295,6 +301,61 @@ function initViewToggle() {
 
   // Apply saved view on init
   applyView(currentView);
+}
+
+// === Panel Idle State ===
+async function loadPanelIdle() {
+  try {
+    // Stats from kanban data (already loaded in allColumns)
+    updatePanelStats();
+
+    // Sessions count
+    const sessions = await fetch('/api/sessions').then(r => r.json());
+    $('stat-sessions').textContent = sessions.length;
+
+    // Project timeline
+    const timeline = await fetch('/api/project/timeline').then(r => r.json());
+    renderPanelTimeline(timeline);
+  } catch { /* non-critical — panel just shows stale data */ }
+}
+
+function updatePanelStats() {
+  const done   = (allColumns.done || []).length;
+  const prog   = (allColumns.in_progress || []).length;
+  const total  = done + prog
+    + (allColumns.backlog || []).length
+    + (allColumns.todo || []).length;
+  const pct    = total > 0 ? Math.round((done / total) * 100) : 0;
+
+  $('stat-done').textContent = done;
+  $('stat-progress').textContent = prog;
+  $('stat-pct').textContent = pct + '%';
+  // sessions count stays as-is (loaded async)
+}
+
+function renderPanelTimeline(entries) {
+  const container = $('panel-timeline');
+  if (!entries || entries.length === 0) {
+    container.innerHTML = '<div class="timeline-empty">Nenhuma sessão registrada ainda.</div>';
+    return;
+  }
+  container.innerHTML = '';
+  entries.forEach((entry, i) => {
+    const div = document.createElement('div');
+    div.className = 'timeline-entry';
+    const date = entry.createdAt
+      ? new Date(entry.createdAt + ' UTC').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
+      : '—';
+    const sid = entry.sessionId ? entry.sessionId.slice(0, 6) + '…' : '—';
+    div.innerHTML = `
+      <div class="timeline-bar ${i === 0 ? 'current' : ''}"></div>
+      <div>
+        <div class="timeline-text">${esc(entry.summary)}</div>
+        <div class="timeline-meta">${esc(sid)} · ${esc(date)}</div>
+      </div>
+    `;
+    container.appendChild(div);
+  });
 }
 
 // === Theme ===
