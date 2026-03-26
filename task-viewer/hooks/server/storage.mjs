@@ -80,7 +80,8 @@ db.exec(`
     session_id TEXT NOT NULL,
     type       TEXT NOT NULL,
     content    TEXT NOT NULL,
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (task_id, session_id) REFERENCES tasks(id, session_id) ON DELETE CASCADE
   );
   CREATE INDEX IF NOT EXISTS idx_task_events_task ON task_events(task_id, session_id);
 

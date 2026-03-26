@@ -58,6 +58,12 @@ function handleSessionChange({ sessionId }) {
 function handleKanbanUpdate(columns) {
   allColumns = columns;
   updateComponentFilters(columns);
+  if (selectedTask) {
+    // Refresh selectedTask reference to avoid showing stale data after board updates
+    const colTasks = allColumns[selectedTask.kanbanColumn] || [];
+    const fresh = colTasks.find(t => t.id === selectedTask.id && t.sessionId === selectedTask.sessionId);
+    if (fresh) selectedTask = fresh;
+  }
   renderBoard();
   if (!selectedTask) updatePanelStats();
 }
@@ -374,12 +380,10 @@ function renderPanelDetail(task) {
   $('detail-title').textContent = task.subject || '—';
 
   // Badges
-  const statusColors = { in_progress: 'col-progress', done: 'col-done', pending: 'text3' };
-  const priorityColors = { high: 'accent', critical: 'accent', medium: 'col-progress', low: 'text3' };
   let badgesHtml = '';
   if (task.status) {
     const label = task.status.replace('_', ' ');
-    badgesHtml += `<span class="priority-badge" style="background:var(--${statusColors[task.status]||'text3'}, rgba(255,255,255,.08));color:var(--${statusColors[task.status]||'text3'})">${esc(label)}</span>`;
+    badgesHtml += `<span class="priority-badge status-badge-${esc(task.status)}">${esc(label)}</span>`;
   }
   if (task.priority) {
     badgesHtml += `<span class="priority-badge priority-${esc(task.priority)}">${esc(task.priority)}</span>`;
@@ -449,7 +453,7 @@ function renderSteps(steps, task) {
     cb.checked = step.checked;
     cb.addEventListener('change', async () => {
       try {
-        const resp = await fetch(`/api/tasks/${task.id}/steps`, {
+        const resp = await fetch(`/api/tasks/${encodeURIComponent(task.id)}/steps`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ sessionId: task.sessionId, index: step.index, checked: cb.checked }),
@@ -474,7 +478,7 @@ function renderSteps(steps, task) {
 
 async function loadTaskDetail(task) {
   try {
-    const events = await fetch(`/api/tasks/${task.id}/events?sessionId=${encodeURIComponent(task.sessionId)}`).then(r => r.json());
+    const events = await fetch(`/api/tasks/${encodeURIComponent(task.id)}/events?sessionId=${encodeURIComponent(task.sessionId)}`).then(r => r.json());
     if (!Array.isArray(events)) return;
 
     // User notes
@@ -582,7 +586,7 @@ function initPanel() {
     if (!text) return;
     $('note-error').classList.add('hidden');
     try {
-      const resp = await fetch(`/api/tasks/${selectedTask.id}/notes`, {
+      const resp = await fetch(`/api/tasks/${encodeURIComponent(selectedTask.id)}/notes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId: selectedTask.sessionId, text }),

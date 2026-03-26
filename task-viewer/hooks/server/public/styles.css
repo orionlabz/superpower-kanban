@@ -485,6 +485,17 @@ body.light .priority-high     { background: #FFF0E8; color: #A04020; border-colo
 body.light .priority-medium   { background: #FFF8E8; color: #906010; border-color: #FFE8A0; }
 body.light .priority-low      { background: var(--bg2); color: var(--text2); border-color: var(--border); }
 
+.status-badge-in_progress { background: rgba(212,148,58,.18); color: var(--col-progress); border: 1px solid rgba(212,148,58,.3); }
+.status-badge-done        { background: rgba(94,158,110,.15); color: var(--col-done);     border: 1px solid rgba(94,158,110,.3); }
+.status-badge-backlog,
+.status-badge-todo,
+.status-badge-pending     { background: rgba(255,255,255,.06); color: var(--text2); border: 1px solid var(--border); }
+body.light .status-badge-in_progress { background: rgba(212,148,58,.15); color: var(--col-progress); border-color: rgba(212,148,58,.3); }
+body.light .status-badge-done        { background: rgba(94,158,110,.12);  color: var(--col-done);     border-color: rgba(94,158,110,.3); }
+body.light .status-badge-backlog,
+body.light .status-badge-todo,
+body.light .status-badge-pending     { background: var(--bg2); color: var(--text2); border-color: var(--border); }
+
 .component-tag {
   font-size: 10px;
   font-weight: 500;
@@ -635,6 +646,11 @@ body.light .component-tag { background: var(--bg2); }
   flex-direction: column;
   height: 100%;
   overflow: hidden;
+}
+.panel-body {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 .panel-header {

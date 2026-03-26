@@ -12,7 +12,7 @@ fi
 # Find first in_progress task for this session
 in_progress=$(curl -s "http://localhost:37778/api/kanban" 2>/dev/null \
   | jq -r --arg sid "$session_id" \
-    '.in_progress // [] | map(select(.sessionId == $sid)) | first | .id // empty')
+    '.in_progress // [] | map(select(.sessionId == $sid)) | .[0] | .id // empty')
 
 if [ -z "$in_progress" ]; then
   echo '{}'; exit 0

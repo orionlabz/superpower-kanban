@@ -129,31 +129,33 @@
             <button class="panel-close" id="panel-close" title="Close" aria-label="Close panel">✕</button>
             <div class="panel-detail-badges" id="detail-badges"></div>
           </div>
-          <div class="panel-section">
-            <div class="panel-section-title">Detalhes</div>
-            <div class="panel-detail-meta" id="detail-meta"></div>
+          <div class="panel-body">
+            <div class="panel-section">
+              <div class="panel-section-title">Detalhes</div>
+              <div class="panel-detail-meta" id="detail-meta"></div>
+            </div>
+            <div class="panel-section" id="steps-section">
+              <div class="panel-section-title">Steps</div>
+              <div class="panel-steps" id="detail-steps"></div>
+            </div>
+            <div class="panel-section">
+              <div class="panel-section-title">Suas Anotações</div>
+              <div class="panel-user-notes" id="user-notes-list"></div>
+              <textarea class="panel-note-input" id="note-input" placeholder="Adicionar anotação..." rows="2" aria-label="Adicionar anotação"></textarea>
+              <button class="panel-note-save" id="note-save">Salvar</button>
+              <div class="panel-note-error hidden" id="note-error"></div>
+            </div>
+            <div class="panel-section">
+              <div class="panel-section-title">Anotações do Claude</div>
+              <div class="panel-claude-notes" id="claude-notes-list"></div>
+            </div>
+            <div class="panel-tabs">
+              <button class="panel-tab active" id="tab-progress" data-tab="progress">Progresso</button>
+              <button class="panel-tab" id="tab-execution" data-tab="execution">Execução</button>
+            </div>
+            <div class="panel-tab-content" id="tab-content-progress"></div>
+            <div class="panel-tab-content hidden" id="tab-content-execution"></div>
           </div>
-          <div class="panel-section" id="steps-section">
-            <div class="panel-section-title">Steps</div>
-            <div class="panel-steps" id="detail-steps"></div>
-          </div>
-          <div class="panel-section">
-            <div class="panel-section-title">Suas Anotações</div>
-            <div class="panel-user-notes" id="user-notes-list"></div>
-            <textarea class="panel-note-input" id="note-input" placeholder="Adicionar anotação..." rows="2" aria-label="Adicionar anotação"></textarea>
-            <button class="panel-note-save" id="note-save">Salvar</button>
-            <div class="panel-note-error hidden" id="note-error"></div>
-          </div>
-          <div class="panel-section">
-            <div class="panel-section-title">Anotações do Claude</div>
-            <div class="panel-claude-notes" id="claude-notes-list"></div>
-          </div>
-          <div class="panel-tabs">
-            <button class="panel-tab active" id="tab-progress" data-tab="progress">Progresso</button>
-            <button class="panel-tab" id="tab-execution" data-tab="execution">Execução</button>
-          </div>
-          <div class="panel-tab-content" id="tab-content-progress"></div>
-          <div class="panel-tab-content hidden" id="tab-content-execution"></div>
         </div>
       </aside>
     </div>
