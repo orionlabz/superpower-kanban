@@ -52,7 +52,7 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "Before stopping: 1) If source code was modified this session, run gitnexus_detect_changes and briefly report affected symbols. 2) Generate a 1-2 sentence summary and POST it to http://localhost:37778/api/session-context/finalize with JSON body containing sessionId and summary fields. 3) Then approve stopping.",
+            "prompt": "Before stopping: 1) If source code was modified this session, run gitnexus_detect_changes and briefly report affected symbols. 2) Call the MCP tool session_summarize with a 1-2 sentence summary of what was accomplished and the count of tasks moved to done. 3) Generate a short summary and POST it to http://localhost:37778/api/session-context/finalize with JSON body {sessionId, summary}. 4) Then approve stopping.",
             "timeout": 60000
           }
         ]
