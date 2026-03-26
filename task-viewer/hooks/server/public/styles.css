@@ -405,6 +405,11 @@ body.light .column-count { background: rgba(0,0,0, 0.05); }
   transform: translateY(-1px);
 }
 
+.task-card.selected {
+  border-color: rgba(204,107,69,0.4);
+  background: var(--accent-muted);
+}
+
 .task-card.expanded {
   border-color: rgba(204,107,69, 0.35);
   box-shadow: 0 0 0 1px rgba(204,107,69, 0.12), var(--shadow-md);

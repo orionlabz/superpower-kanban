@@ -201,7 +201,7 @@ function renderListView() {
 
 function createCard(task) {
   const card = document.createElement('div');
-  card.className = 'task-card';
+  card.className = 'task-card' + (selectedTask?.id === task.id && selectedTask?.sessionId === task.sessionId ? ' selected' : '');
 
   const priorityClass = task.priority ? 'priority-' + task.priority : '';
   const priorityHtml = task.priority
@@ -220,21 +220,14 @@ function createCard(task) {
       <span class="card-id">#${esc(task.id)}</span>
     </div>
     ${(task.priority || task.component || task.effort) ? `<div class="card-meta">${priorityHtml}${componentHtml}${effortHtml}</div>` : ''}
-    <div class="card-detail hidden">
-      ${task.description ? `<div class="detail-field"><span class="detail-label">Description</span><span class="detail-value">${esc(task.description)}</span></div>` : ''}
-      ${task.activeForm ? `<div class="detail-field"><span class="detail-label">Active</span><span class="active-form">${esc(task.activeForm)}</span></div>` : ''}
-      ${task.metadata?.feature ? `<div class="detail-field"><span class="detail-label">Feature</span><span class="detail-value">${esc(task.metadata.feature)}</span></div>` : ''}
-      ${task.tags?.length ? `<div class="detail-field"><span class="detail-label">Tags</span><span class="detail-value">${task.tags.map(t => esc(t)).join(', ')}</span></div>` : ''}
-      <div class="detail-field"><span class="detail-label">Session</span><span class="detail-value" style="font-family:monospace;font-size:11px">${esc(shortSession(task.sessionId))}</span></div>
-      <div class="detail-field"><span class="detail-label">Updated</span><span class="detail-value">${task.updatedAt ? new Date(task.updatedAt + ' UTC').toLocaleString() : '—'}</span></div>
-    </div>
   `;
 
   card.addEventListener('click', () => {
-    const detail = card.querySelector('.card-detail');
-    const expanded = !detail.classList.contains('hidden');
-    detail.classList.toggle('hidden', expanded);
-    card.classList.toggle('expanded', !expanded);
+    if (selectedTask?.id === task.id && selectedTask?.sessionId === task.sessionId) {
+      deselectTask();
+    } else {
+      selectTask(task);
+    }
   });
 
   return card;
@@ -311,7 +304,7 @@ async function loadPanelIdle() {
 
     // Sessions count
     const sessions = await fetch('/api/sessions').then(r => r.json());
-    $('stat-sessions').textContent = sessions.length;
+    $('stat-sessions').textContent = Array.isArray(sessions) ? sessions.length : '—';
 
     // Project timeline
     const timeline = await fetch('/api/project/timeline').then(r => r.json());
@@ -358,6 +351,252 @@ function renderPanelTimeline(entries) {
   });
 }
 
+// === Panel Detail ===
+function selectTask(task) {
+  selectedTask = task;
+  $('panel-idle').classList.add('hidden');
+  $('panel-detail').classList.remove('hidden');
+  renderPanelDetail(task);
+  loadTaskDetail(task);
+  renderBoard(); // re-render to show selection highlight
+}
+
+function deselectTask() {
+  selectedTask = null;
+  $('panel-idle').classList.remove('hidden');
+  $('panel-detail').classList.add('hidden');
+  renderBoard();
+  updatePanelStats();
+}
+
+function renderPanelDetail(task) {
+  // Header
+  $('detail-title').textContent = task.subject || '—';
+
+  // Badges
+  const statusColors = { in_progress: 'col-progress', done: 'col-done', pending: 'text3' };
+  const priorityColors = { high: 'accent', critical: 'accent', medium: 'col-progress', low: 'text3' };
+  let badgesHtml = '';
+  if (task.status) {
+    const label = task.status.replace('_', ' ');
+    badgesHtml += `<span class="priority-badge" style="background:var(--${statusColors[task.status]||'text3'}, rgba(255,255,255,.08));color:var(--${statusColors[task.status]||'text3'})">${esc(label)}</span>`;
+  }
+  if (task.priority) {
+    badgesHtml += `<span class="priority-badge priority-${esc(task.priority)}">${esc(task.priority)}</span>`;
+  }
+  $('detail-badges').innerHTML = badgesHtml;
+
+  // Metadata grid
+  const metaItems = [
+    task.component ? { key: 'Componente', val: task.component } : null,
+    task.effort    ? { key: 'Esforço',    val: task.effort    } : null,
+    task.metadata?.feature ? { key: 'Feature', val: task.metadata.feature } : null,
+    task.sessionId ? { key: 'Sessão', val: task.sessionId.slice(0, 8) + '…' } : null,
+  ].filter(Boolean);
+
+  let metaHtml = metaItems.map(m => `
+    <div>
+      <div class="meta-key">${esc(m.key)}</div>
+      <div class="meta-val">${esc(m.val)}</div>
+    </div>
+  `).join('');
+
+  if (task.tags?.length) {
+    metaHtml += `<div style="grid-column:1/-1">
+      <div class="meta-key">Tags</div>
+      <div class="panel-tags">${task.tags.map(t => `<span class="tag-chip">${esc(t)}</span>`).join('')}</div>
+    </div>`;
+  }
+  $('detail-meta').innerHTML = metaHtml;
+
+  // Steps — parse from description
+  const steps = parseSteps(task.description || '');
+  const stepsSection = $('steps-section');
+  if (steps.length === 0) {
+    stepsSection.classList.add('hidden');
+  } else {
+    stepsSection.classList.remove('hidden');
+    renderSteps(steps, task);
+  }
+
+  // Clear notes and events (will be filled by loadTaskDetail)
+  $('user-notes-list').innerHTML = '';
+  $('claude-notes-list').innerHTML = '';
+  $('tab-content-progress').innerHTML = '';
+  $('tab-content-execution').innerHTML = '';
+  $('note-input').value = '';
+  $('note-error').classList.add('hidden');
+}
+
+function parseSteps(description) {
+  const lines = description.split('\n');
+  const steps = [];
+  lines.forEach((line, i) => {
+    const m = line.match(/^- \[([ x])\] (.+)$/);
+    if (m) steps.push({ index: steps.length, lineIndex: i, checked: m[1] === 'x', text: m[2] });
+  });
+  return steps;
+}
+
+function renderSteps(steps, task) {
+  const container = $('detail-steps');
+  container.innerHTML = '';
+  steps.forEach(step => {
+    const item = document.createElement('label');
+    item.className = 'step-item' + (step.checked ? ' done' : '');
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = step.checked;
+    cb.addEventListener('change', async () => {
+      try {
+        const resp = await fetch(`/api/tasks/${task.id}/steps`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionId: task.sessionId, index: step.index, checked: cb.checked }),
+        });
+        if (!resp.ok) { cb.checked = !cb.checked; return; }
+        // Update local task description
+        const data = await resp.json();
+        const colTasks = allColumns[task.kanbanColumn] || [];
+        const t = colTasks.find(t => t.id === task.id && t.sessionId === task.sessionId);
+        if (t) t.description = data.description;
+        if (selectedTask?.id === task.id) selectedTask.description = data.description;
+        item.classList.toggle('done', cb.checked);
+      } catch { cb.checked = !cb.checked; }
+    });
+    const span = document.createElement('span');
+    span.textContent = step.text;
+    item.appendChild(cb);
+    item.appendChild(span);
+    container.appendChild(item);
+  });
+}
+
+async function loadTaskDetail(task) {
+  try {
+    const events = await fetch(`/api/tasks/${task.id}/events?sessionId=${encodeURIComponent(task.sessionId)}`).then(r => r.json());
+    if (!Array.isArray(events)) return;
+
+    // User notes
+    const userNotes = events.filter(e => e.type === 'user_note');
+    $('user-notes-list').innerHTML = userNotes.map(e => `
+      <div class="note-item">
+        <div>${esc(e.content?.text || '')}</div>
+        <div class="note-meta">${formatEventTime(e.createdAt)}</div>
+      </div>
+    `).join('') || '';
+
+    // Claude notes
+    const claudeNotes = events.filter(e => e.type === 'claude_note');
+    $('claude-notes-list').innerHTML = claudeNotes.map(e => `
+      <div class="note-item">
+        <div>${esc(e.content?.text || '')}</div>
+        <div class="note-meta">${formatEventTime(e.createdAt)} · ${esc(e.content?.tool || 'claude')}</div>
+      </div>
+    `).join('') || '<div style="font-size:11px;color:var(--text3);font-style:italic">Sem anotações do Claude.</div>';
+
+    // Progress tab — status transitions
+    const statusEvents = events.filter(e => e.type === 'status_change');
+    $('tab-content-progress').innerHTML = statusEvents.map(e => `
+      <div class="event-item">
+        <div class="event-dot status_change"></div>
+        <div>
+          <div class="event-text">${esc(e.content?.from || '—')} → <strong>${esc(e.content?.to || '—')}</strong></div>
+          <div class="event-time">${formatEventTime(e.createdAt)}</div>
+        </div>
+      </div>
+    `).join('') || '<div style="font-size:11px;color:var(--text3);font-style:italic">Nenhuma transição registrada.</div>';
+
+    // Execution tab — tool calls (grouped by burst: consecutive within 60s)
+    const toolEvents = events.filter(e => e.type === 'tool_call');
+    const bursts = groupBursts(toolEvents, 60);
+    $('tab-content-execution').innerHTML = bursts.map(burst => {
+      const counts = {};
+      for (const e of burst) {
+        counts[e.content?.tool || '?'] = (counts[e.content?.tool || '?'] || 0) + 1;
+      }
+      const summary = Object.entries(counts).map(([t, n]) => n > 1 ? `${t}×${n}` : t).join(', ');
+      const start = formatEventTime(burst[0].createdAt);
+      const end   = burst.length > 1 ? formatEventTime(burst[burst.length-1].createdAt) : null;
+      return `
+        <div class="event-item">
+          <div class="event-dot tool_call"></div>
+          <div>
+            <div class="event-text">⚡ ${esc(summary)}</div>
+            <div class="event-time">${esc(start)}${end ? ' – ' + esc(end) : ''}</div>
+          </div>
+        </div>
+      `;
+    }).join('') || '<div style="font-size:11px;color:var(--text3);font-style:italic">Nenhuma tool call registrada.</div>';
+  } catch {
+    $('tab-content-progress').innerHTML = '<div style="font-size:11px;color:var(--text3)">Não foi possível carregar os eventos.</div>';
+  }
+}
+
+function formatEventTime(createdAt) {
+  if (!createdAt) return '—';
+  try {
+    return new Date(createdAt + ' UTC').toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  } catch { return createdAt; }
+}
+
+function groupBursts(events, windowSeconds) {
+  if (!events.length) return [];
+  const bursts = [];
+  let current = [events[0]];
+  for (let i = 1; i < events.length; i++) {
+    const prev = new Date(events[i-1].createdAt + ' UTC').getTime();
+    const curr = new Date(events[i].createdAt + ' UTC').getTime();
+    if ((curr - prev) / 1000 <= windowSeconds) {
+      current.push(events[i]);
+    } else {
+      bursts.push(current);
+      current = [events[i]];
+    }
+  }
+  bursts.push(current);
+  return bursts;
+}
+
+function initPanel() {
+  // Close button
+  $('panel-close').addEventListener('click', deselectTask);
+
+  // Tab switching
+  let activeTab = 'progress';
+  document.querySelectorAll('.panel-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      activeTab = btn.dataset.tab;
+      document.querySelectorAll('.panel-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      $('tab-content-progress').classList.toggle('hidden', activeTab !== 'progress');
+      $('tab-content-execution').classList.toggle('hidden', activeTab !== 'execution');
+    });
+  });
+
+  // Note save
+  $('note-save').addEventListener('click', async () => {
+    if (!selectedTask) return;
+    const text = $('note-input').value.trim();
+    if (!text) return;
+    $('note-error').classList.add('hidden');
+    try {
+      const resp = await fetch(`/api/tasks/${selectedTask.id}/notes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId: selectedTask.sessionId, text }),
+      });
+      if (!resp.ok) throw new Error('save failed');
+      $('note-input').value = '';
+      // Reload events to show new note
+      loadTaskDetail(selectedTask);
+    } catch {
+      $('note-error').textContent = 'Erro ao salvar. Tente novamente.';
+      $('note-error').classList.remove('hidden');
+    }
+  });
+}
+
 // === Theme ===
 function updateThemeIcon() {
   const btn = $('theme-toggle');
@@ -383,5 +622,6 @@ function initTheme() {
 initTheme();
 initDoneCollapse();
 initViewToggle();
+initPanel();
 connect();
 loadInitialState();
