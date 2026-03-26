@@ -6,6 +6,8 @@ let allColumns = { backlog: [], todo: [], in_progress: [], done: [] };
 let currentSessionId = null;
 let activeComponents = new Set();
 let sessionFilter = false;
+let currentView = localStorage.getItem('task-viewer-view') || 'kanban';
+let selectedTask = null;
 
 // === DOM ===
 const $ = id => document.getElementById(id);
@@ -109,11 +111,15 @@ function filterTasks(tasks) {
 
 // === Board Rendering ===
 function renderBoard() {
-  const cols = ['backlog', 'todo', 'in_progress', 'done'];
-  for (const col of cols) {
-    const tasks = filterTasks(allColumns[col] || []);
-    $('count-' + col).textContent = tasks.length;
-    renderColumn(col, tasks);
+  if (currentView === 'list') {
+    renderListView();
+  } else {
+    const cols = ['backlog', 'todo', 'in_progress', 'done'];
+    for (const col of cols) {
+      const tasks = filterTasks(allColumns[col] || []);
+      $('count-' + col).textContent = tasks.length;
+      renderColumn(col, tasks);
+    }
   }
 }
 
@@ -126,6 +132,69 @@ function renderColumn(col, tasks) {
   }
   for (const task of tasks) {
     body.appendChild(createCard(task));
+  }
+}
+
+const LIST_COLS = [
+  { id: 'backlog',     label: 'Backlog',      startCollapsed: false },
+  { id: 'todo',        label: 'Todo',         startCollapsed: false },
+  { id: 'in_progress', label: 'In Progress',  startCollapsed: false },
+  { id: 'done',        label: 'Done',         startCollapsed: true  },
+];
+
+function renderListView() {
+  const container = $('list-view');
+  container.innerHTML = '';
+
+  for (const { id, label, startCollapsed } of LIST_COLS) {
+    const tasks = filterTasks(allColumns[id] || []);
+    const section = document.createElement('div');
+    section.className = 'list-section' + (startCollapsed ? ' collapsed' : '');
+    section.dataset.col = id;
+
+    const header = document.createElement('div');
+    header.className = 'list-section-header';
+    header.setAttribute('role', 'button');
+    header.setAttribute('tabindex', '0');
+    header.innerHTML = `
+      <span>${esc(label)}</span>
+      <span class="list-section-count">${tasks.length}</span>
+      <span class="list-section-chevron">▶</span>
+    `;
+    header.addEventListener('click', () => {
+      const collapsed = section.classList.toggle('collapsed');
+      rows.classList.toggle('hidden', collapsed);
+    });
+
+    const rows = document.createElement('div');
+    rows.className = 'list-rows' + (startCollapsed ? ' hidden' : '');
+
+    for (const task of tasks) {
+      const row = document.createElement('div');
+      row.className = 'list-row' + (selectedTask?.id === task.id && selectedTask?.sessionId === task.sessionId ? ' selected' : '');
+      const priorityHtml = task.priority
+        ? `<span class="list-row-priority priority-${esc(task.priority)}">${esc(task.priority)}</span>`
+        : '';
+      row.innerHTML = `
+        <span class="list-row-title">${esc(task.subject)}</span>
+        ${task.component ? `<span class="list-row-comp">${esc(task.component)}</span>` : ''}
+        ${priorityHtml}
+      `;
+      row.addEventListener('click', () => selectTask(task));
+      rows.appendChild(row);
+    }
+
+    if (tasks.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'list-row';
+      empty.style.cssText = 'color:var(--text3);font-size:11px;font-style:italic;cursor:default';
+      empty.textContent = 'Sem tasks';
+      rows.appendChild(empty);
+    }
+
+    section.appendChild(header);
+    section.appendChild(rows);
+    container.appendChild(section);
   }
 }
 
@@ -202,6 +271,32 @@ function initDoneCollapse() {
   });
 }
 
+// === View Toggle ===
+function initViewToggle() {
+  const kanbanBtn = $('view-kanban');
+  const listBtn   = $('view-list');
+  const board     = $('board');
+  const listView  = $('list-view');
+
+  function applyView(view) {
+    currentView = view;
+    localStorage.setItem('task-viewer-view', view);
+    kanbanBtn.classList.toggle('active', view === 'kanban');
+    listBtn.classList.toggle('active', view === 'list');
+    kanbanBtn.setAttribute('aria-pressed', String(view === 'kanban'));
+    listBtn.setAttribute('aria-pressed', String(view === 'list'));
+    board.classList.toggle('hidden', view === 'list');
+    listView.classList.toggle('hidden', view === 'kanban');
+    renderBoard();
+  }
+
+  kanbanBtn.addEventListener('click', () => applyView('kanban'));
+  listBtn.addEventListener('click', () => applyView('list'));
+
+  // Apply saved view on init
+  applyView(currentView);
+}
+
 // === Theme ===
 function updateThemeIcon() {
   const btn = $('theme-toggle');
@@ -226,5 +321,6 @@ function initTheme() {
 // === Boot ===
 initTheme();
 initDoneCollapse();
+initViewToggle();
 connect();
 loadInitialState();
