@@ -11,6 +11,7 @@
 </head>
 <body>
   <div class="app">
+    <div class="main-area">
     <header class="toolbar">
       <div class="toolbar-left">
         <span class="app-title">Task Viewer</span>
@@ -74,7 +75,7 @@
           <div class="column-header" id="done-header" role="button" tabindex="0" aria-expanded="false">
             <span class="column-title">Done</span>
             <span class="column-count" id="count-done">0</span>
-            <span class="collapse-chevron">▶</span>
+            <span class="collapse-chevron">+</span>
           </div>
           <div class="column-body hidden" id="cards-done">
             <div class="empty-state">No tasks here</div>
@@ -84,9 +85,11 @@
 
       <!-- List view (hidden by default) -->
       <div class="list-view hidden" id="list-view"></div>
+    </div><!-- /.workspace -->
+  </div><!-- /.main-area -->
 
-      <!-- Persistent side panel -->
-      <aside class="side-panel" id="side-panel">
+  <!-- Persistent side panel (full height, sibling of main-area) -->
+  <aside class="side-panel" id="side-panel">
         <!-- Idle state: project stats + timeline -->
         <div class="panel-idle" id="panel-idle">
           <div class="panel-header">
@@ -162,9 +165,8 @@
             <div class="panel-tab-content hidden" id="tab-content-execution"></div>
           </div>
         </div>
-      </aside>
-    </div>
-  </div>
-  <script src="app.js"></script>
+  </aside>
+</div><!-- /.app -->
+<script src="app.js"></script>
 </body>
 </html>

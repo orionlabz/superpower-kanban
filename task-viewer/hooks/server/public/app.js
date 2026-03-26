@@ -264,11 +264,13 @@ function initDoneCollapse() {
   const body = $('cards-done');
   const col = $('col-done');
 
+  const chevron = header.querySelector('.collapse-chevron');
   header.addEventListener('click', () => {
     const isCollapsed = col.classList.contains('collapsed');
     col.classList.toggle('collapsed', !isCollapsed);
     body.classList.toggle('hidden', !isCollapsed);
     header.setAttribute('aria-expanded', String(isCollapsed));
+    chevron.textContent = isCollapsed ? '−' : '+';
   });
 
   header.addEventListener('keydown', e => {
