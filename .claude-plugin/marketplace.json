@@ -15,6 +15,15 @@
       "author": {
         "name": "OrionLabz"
       }
+    },
+    {
+      "name": "carousel-builder",
+      "description": "Local visual editor for creating dark-luxury editorial Instagram carousels. HTTP bridge on localhost:3456, MCP tools auto-registered.",
+      "version": "0.1.0",
+      "source": "./carousel-builder",
+      "author": {
+        "name": "OrionLabz"
+      }
     }
   ]
 }
