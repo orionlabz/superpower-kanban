@@ -1,4 +1,10 @@
 {
   "name": "task-viewer",
-  "description": "Real-time Kanban dashboard that visualizes Claude Code tasks, plans, and claude-mem context. Auto-starts with sessions on localhost:37778."
+  "version": "0.3.0",
+  "description": "Real-time Kanban dashboard that visualizes Claude Code tasks, plans, and claude-mem context. Auto-starts with sessions on localhost:37778.",
+  "author": {
+    "name": "OrionLabz"
+  },
+  "license": "MIT",
+  "keywords": ["kanban", "tasks", "dashboard", "claude-mem", "productivity"]
 }
