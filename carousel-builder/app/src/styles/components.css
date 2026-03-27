@@ -1,1 +1,11 @@
 /* Components — populated in later tasks */
+
+/* ── Rich Text Editor ──────────────────────────────────────────────────────── */
+.rt-wrap { display: flex; flex-direction: column; gap: 0; }
+.rt-toolbar { display: flex; gap: 2px; padding: 4px; background: var(--bg-input); border: 1px solid var(--border); border-bottom: none; border-radius: 6px 6px 0 0; }
+.rt-btn { width: 26px; height: 26px; background: transparent; border: 1px solid transparent; border-radius: 4px; cursor: pointer; color: var(--text-muted); font-size: 12px; display: flex; align-items: center; justify-content: center; transition: all .1s; }
+.rt-btn:hover { background: var(--bg-panel); border-color: var(--border); color: var(--text); }
+.rt-btn-accent { color: #CCFF00; font-weight: 700; }
+.rt-editor { min-height: 32px; padding: 8px 10px; border-radius: 0 0 6px 6px; outline: none; line-height: 1.5; white-space: pre-wrap; word-break: break-word; border-top: none; }
+.rt-editor:empty::before { content: attr(data-placeholder); color: var(--text-muted); pointer-events: none; }
+.rt-editor .accent { color: #CCFF00; }
