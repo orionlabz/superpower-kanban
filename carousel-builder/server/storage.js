@@ -21,7 +21,7 @@ export async function saveBrandLogo(stream, originalName) {
   return `/storage/brands/${filename}`;
 }
 
-export function serveStorageFile(pathname, res) {
+export async function serveStorageFile(pathname, res) {
   const relative = pathname.replace(/^\/storage\//, '');
   const filePath = resolve(STORAGE_DIR, relative);
   // Security: must stay within STORAGE_DIR
@@ -30,8 +30,11 @@ export function serveStorageFile(pathname, res) {
   }
   const ext = extname(filePath);
   const mime = { '.png': 'image/png', '.svg': 'image/svg+xml' }[ext] || 'application/octet-stream';
-  const stream = createReadStream(filePath);
-  stream.on('error', () => { res.writeHead(404); res.end(); });
+  try {
+    await import('node:fs/promises').then(m => m.access(filePath));
+  } catch {
+    res.writeHead(404); res.end(); return;
+  }
   res.writeHead(200, { 'Content-Type': mime });
-  stream.pipe(res);
+  createReadStream(filePath).pipe(res);
 }
