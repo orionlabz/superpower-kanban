@@ -77,6 +77,25 @@ export async function mountThemeEditor() {
               <div class="form-group" id="picker-font-ui"></div>
             </section>
             <section class="theme-section">
+              <h3 class="theme-section-title">Tamanhos de texto</h3>
+              <div class="form-group">
+                <label class="form-label">Tamanho dos títulos (px)</label>
+                <input class="form-input" type="number" id="t-font-size-headline" min="40" max="120" step="2" value="${currentTheme.font_size_headline ?? 72}">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Tamanho do corpo (px)</label>
+                <input class="form-input" type="number" id="t-font-size-body" min="18" max="60" step="1" value="${currentTheme.font_size_body ?? 36}">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Line-height títulos</label>
+                <input class="form-input" type="number" id="t-line-height-headline" min="0.9" max="1.8" step="0.05" value="${currentTheme.line_height_headline ?? 1.05}">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Line-height corpo</label>
+                <input class="form-input" type="number" id="t-line-height-body" min="1.2" max="2.2" step="0.05" value="${currentTheme.line_height_body ?? 1.5}">
+              </div>
+            </section>
+            <section class="theme-section">
               <h3 class="theme-section-title">Cores</h3>
               <div id="color-pickers" class="color-pickers-grid"></div>
             </section>
@@ -119,6 +138,20 @@ export async function mountThemeEditor() {
     const cp = createColorPicker({ value: currentTheme[key] || '#000000', label, onChange: v => { currentTheme[key] = v; updatePreview(); } });
     colorGrid.appendChild(cp.el);
     colorPickers[key] = cp;
+  });
+
+  // Typography size inputs
+  const sizeInputs = [
+    { id: 't-font-size-headline', key: 'font_size_headline', parse: Number },
+    { id: 't-font-size-body',     key: 'font_size_body',     parse: Number },
+    { id: 't-line-height-headline', key: 'line_height_headline', parse: Number },
+    { id: 't-line-height-body',     key: 'line_height_body',     parse: Number },
+  ];
+  sizeInputs.forEach(({ id, key, parse }) => {
+    document.getElementById(id)?.addEventListener('input', e => {
+      const v = parse(e.target.value);
+      if (!isNaN(v) && v > 0) { currentTheme[key] = v; updatePreview(); }
+    });
   });
 
   // Brand uploads
@@ -164,6 +197,10 @@ async function saveTheme() {
   currentTheme.brand_symbol = document.getElementById('t-brand-symbol').value.trim();
   currentTheme.nav_left = document.getElementById('t-nav-left').value.trim();
   currentTheme.nav_right = document.getElementById('t-nav-right').value.trim();
+  currentTheme.font_size_headline    = Number(document.getElementById('t-font-size-headline').value)    || 72;
+  currentTheme.font_size_body        = Number(document.getElementById('t-font-size-body').value)        || 36;
+  currentTheme.line_height_headline  = Number(document.getElementById('t-line-height-headline').value)  || 1.05;
+  currentTheme.line_height_body      = Number(document.getElementById('t-line-height-body').value)      || 1.5;
 
   try {
     await api.themes.update(currentTheme.id, currentTheme);
