@@ -49,6 +49,14 @@ let _genTimer = null;
 let _genEntryId = 0;
 let _previewTimer = null;
 
+// ─── Inline SVG icons ─────────────────────────────────────────────────────────
+const SVG_BACK = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>`;
+const SVG_DOWNLOAD = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`;
+const SVG_X = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>`;
+const SVG_UPLOAD = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>`;
+const SVG_PNG = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`;
+const SVG_PDF = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>`;
+
 function showGeneratingScreen(topic) {
   clearInterval(_genTimer);
   _genEntryId = 0;
@@ -179,6 +187,10 @@ function renderSidebar() {
   const sidebar = document.getElementById('sidebar');
   if (!sidebar) return;
   sidebar.innerHTML = '';
+  const countEl = document.createElement('div');
+  countEl.className = 'sidebar-count';
+  countEl.textContent = `${S.slides.length} slide${S.slides.length !== 1 ? 's' : ''}`;
+  sidebar.appendChild(countEl);
   S.slides.forEach((slide, i) => {
     const item = document.createElement('div');
     item.className = 'thumb-item' + (i === S.active ? ' active' : '');
@@ -239,6 +251,8 @@ function renderPreview() {
   }
 
   iframe.srcdoc = slideDoc(S.active);
+  const counter = document.getElementById('slide-counter');
+  if (counter) counter.textContent = `${S.active + 1} / ${S.slides.length}`;
 }
 
 // ─── Template + Layout Picker ─────────────────────────────────────────────────
@@ -396,7 +410,7 @@ function renderPanel() {
            </div>`
         : `<div class="drop-zone">
              <input type="file" accept="image/*" id="inp-img">
-             <div class="drop-zone-icon">⊕</div>
+             <div class="drop-zone-icon">${SVG_UPLOAD}</div>
              <div class="drop-zone-text">Clique para fazer upload<br>JPG · PNG · WEBP</div>
            </div>`
       }
@@ -425,7 +439,7 @@ function renderPanel() {
         ${(slide.list_items || []).map((item, i) =>
           `<div class="list-item-row">
             <input class="field-input" value="${esc(item)}" data-list-idx="${i}">
-            <button class="btn-remove" data-list-remove="${i}">×</button>
+            <button class="btn-remove" data-list-remove="${i}" aria-label="Remover item">${SVG_X}</button>
           </div>`
         ).join('')}
       </div>
@@ -441,7 +455,7 @@ function renderPanel() {
           `<div class="step-row">
             <div class="step-row-top">
               <input class="field-input step-label-input" value="${esc(step.label)}" placeholder="Etapa ${i + 1}" data-step-idx="${i}" data-step-field="label">
-              <button class="btn-remove" data-step-remove="${i}">×</button>
+              <button class="btn-remove" data-step-remove="${i}" aria-label="Remover etapa">${SVG_X}</button>
             </div>
             <div data-rich="step_text_html_${i}"></div>
             ${slide.layout === 'c' ? renderIconPicker(i, (slide.steps[i] || {}).icon) : ''}
@@ -526,6 +540,17 @@ function renderPanel() {
 
   const inpImg = panel.querySelector('#inp-img');
   if (inpImg) inpImg.onchange = (e) => uploadImg(e);
+
+  const dropZone = panel.querySelector('.drop-zone');
+  if (dropZone) {
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('drag-over');
+      uploadImgFile(e.dataTransfer.files[0]);
+    });
+  }
 
   const adjustImgBtn = panel.querySelector('#btn-adjust-img');
   if (adjustImgBtn) adjustImgBtn.onclick = showImgTransformOverlay;
@@ -974,8 +999,7 @@ function addSlide() {
 }
 
 
-function uploadImg(event) {
-  const file = event.target.files[0];
+function uploadImgFile(file) {
   if (!file) return;
   const reader = new FileReader();
   reader.onload = e => {
@@ -986,6 +1010,10 @@ function uploadImg(event) {
     scheduleSave();
   };
   reader.readAsDataURL(file);
+}
+
+function uploadImg(event) {
+  uploadImgFile(event.target.files[0]);
 }
 
 function removeImg() {
@@ -1035,12 +1063,18 @@ export function mountEditor() {
   app.innerHTML = `
     <div class="screen-editor">
       <header class="editor-header">
-        <button class="header-btn" id="btn-back">← Projetos</button>
+        <button class="header-btn" id="btn-back">${SVG_BACK} Projetos</button>
         <div id="editor-topic" class="editor-topic"></div>
         <div class="header-actions">
-          <button class="header-btn" id="btn-export-png" title="Exportar como PNG (um arquivo por slide)">↓ PNG</button>
-          <button class="header-btn" id="btn-export-pdf" title="Exportar como PDF">↓ PDF</button>
-          <div id="saved-dot" class="saved-dot"></div>
+          <div id="save-indicator" class="save-indicator"><span class="save-indicator-dot"></span>Salvo</div>
+          <div class="export-dropdown">
+            <button class="header-btn btn-export-toggle" id="btn-export-toggle">${SVG_DOWNLOAD} Exportar ▾</button>
+            <div class="export-menu" id="export-menu">
+              <div class="export-menu-item" id="menu-export-png">${SVG_PNG} PNG por slide</div>
+              <div class="export-menu-divider"></div>
+              <div class="export-menu-item" id="menu-export-pdf">${SVG_PDF} PDF</div>
+            </div>
+          </div>
         </div>
       </header>
       <div class="editor-body">
@@ -1065,6 +1099,7 @@ export function mountEditor() {
             </div>
           </div>
           <div id="preview-wrap" class="preview-frame-wrap"></div>
+          <div id="slide-counter" class="slide-counter"></div>
         </div>
         <div class="edit-panel" id="edit-panel"></div>
       </div>
@@ -1073,8 +1108,14 @@ export function mountEditor() {
   document.getElementById('btn-back').onclick = () =>
     navigate('project', { projectId: S.projectId });
 
-  document.getElementById('btn-export-pdf').onclick = exportPDF;
-  document.getElementById('btn-export-png').onclick = exportPNG;
+  const exportMenu = document.getElementById('export-menu');
+  document.getElementById('btn-export-toggle').onclick = (e) => {
+    e.stopPropagation();
+    exportMenu.classList.toggle('open');
+  };
+  document.getElementById('menu-export-png').onclick = () => { exportMenu.classList.remove('open'); exportPNG(); };
+  document.getElementById('menu-export-pdf').onclick = () => { exportMenu.classList.remove('open'); exportPDF(); };
+  document.addEventListener('click', () => exportMenu.classList.remove('open'));
 
   if (S.carousel) {
     document.getElementById('editor-topic').textContent = S.carousel.title || '';

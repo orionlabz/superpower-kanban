@@ -36,4 +36,10 @@ async function persistCarousel() {
     slides: S.slides,
     images: S.images,
   }).catch(console.error);
+  const el = document.getElementById('save-indicator');
+  if (el) {
+    el.classList.add('on');
+    clearTimeout(el._saveTimer);
+    el._saveTimer = setTimeout(() => el.classList.remove('on'), 2000);
+  }
 }
