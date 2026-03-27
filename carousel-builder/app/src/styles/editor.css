@@ -1,1 +1,2 @@
-/* Editor — populated in later tasks */
+/* Editor screen shell */
+.screen-editor { height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
