@@ -15,10 +15,68 @@ const SLIDE_DEFAULTS = {
   cta:     { template: 'cta',     layout: 'a', headline: '', headline_italic: '', body: '', cta_text: '', cta_word: '', cta_suffix: '' },
 };
 
-// ─── Loading state ────────────────────────────────────────────────────────────
-const STEP_DELAYS = [0, 2000, 8000, 20000];
-const BAR_TARGETS  = [12, 30, 55, 80];
+// ─── Legacy in-editor loading (unused after full-screen generating) ───────────
 let loadingTimers = [];
+
+// ─── Full-screen generating view ──────────────────────────────────────────────
+let _genTimer = null;
+let _genEntryId = 0;
+
+function showGeneratingScreen(topic) {
+  clearInterval(_genTimer);
+  _genEntryId = 0;
+  document.getElementById('app').innerHTML = `
+    <div class="generating-screen">
+      <div class="generating-inner">
+        <div class="generating-label">Gerando carrossel</div>
+        <div class="generating-topic">${esc(topic)}</div>
+        <div class="gen-bar-wrap"><div id="gen-bar" class="gen-bar"></div></div>
+        <div id="gen-log" class="gen-log"></div>
+        <div id="gen-elapsed" class="gen-elapsed">0s</div>
+      </div>
+    </div>`;
+  let secs = 0;
+  _genTimer = setInterval(() => {
+    secs++;
+    const el = document.getElementById('gen-elapsed');
+    if (el) el.textContent = secs + 's';
+  }, 1000);
+}
+
+function genLog(msg, status = 'pending') {
+  const log = document.getElementById('gen-log');
+  if (!log) return null;
+  const id = 'ge' + (_genEntryId++);
+  const div = document.createElement('div');
+  div.className = `gen-entry gen-${status}`;
+  div.id = id;
+  div.innerHTML = `<span class="gen-dot"></span><span class="gen-msg">${esc(msg)}</span>`;
+  log.appendChild(div);
+  requestAnimationFrame(() => requestAnimationFrame(() => div.classList.add('in')));
+  log.scrollTop = log.scrollHeight;
+  return id;
+}
+
+function genLogDone(id) {
+  document.getElementById(id)?.classList.replace('gen-pending', 'gen-done');
+}
+
+function genLogErr(id, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.replace('gen-pending', 'gen-error');
+  if (msg) el.querySelector('.gen-msg').textContent = msg;
+}
+
+function setGenBar(pct) {
+  const bar = document.getElementById('gen-bar');
+  if (bar) bar.style.width = pct + '%';
+}
+
+function stopGeneratingScreen() {
+  clearInterval(_genTimer);
+  _genTimer = null;
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function esc(s) {
@@ -729,20 +787,55 @@ export function showNewCarouselModal() {
 
 // ─── Generate and open ────────────────────────────────────────────────────────
 export async function generateAndOpen(brief) {
-  const carousel = await api.carousels.create(S.projectId, brief.topic);
-  S.carouselId = carousel.id;
-  await navigate('editor', { projectId: S.projectId, carouselId: carousel.id });
-  startLoading(brief.topic);
+  // Show full-screen loading immediately — no blank screen gap
+  showGeneratingScreen(brief.topic);
+  setGenBar(5);
+
+  const phaseTimers = [];
+
   try {
+    // Step 1: create carousel record in DB
+    const id1 = genLog('Criando carrossel…');
+    const carousel = await api.carousels.create(S.projectId, brief.topic);
+    S.carouselId = carousel.id;
+    genLogDone(id1);
+    setGenBar(15);
+
+    // Step 2: AI generation — schedule cosmetic sub-phase messages
+    const id2 = genLog('Conectando ao Claude…');
+    setGenBar(18);
+    phaseTimers.push(setTimeout(() => { genLogDone(id2); genLog('Analisando tema…'); setGenBar(30); }, 3000));
+    phaseTimers.push(setTimeout(() => { genLog('Estruturando narrativa…'); setGenBar(45); }, 9000));
+    phaseTimers.push(setTimeout(() => { genLog('Criando os slides…'); setGenBar(60); }, 20000));
+    phaseTimers.push(setTimeout(() => { genLog('Refinando conteúdo…'); setGenBar(72); }, 35000));
+
     const result = await api.generate(brief);
-    S.slides = result.slides || [];
+    phaseTimers.forEach(clearTimeout);
+    setGenBar(85);
+    genLog(`${result.slides?.length || 0} slides gerados`, 'done');
+
+    // Step 3: mount editor
+    genLog('Carregando editor…');
+    setGenBar(92);
+
+    // Pre-set slides so mountEditor sees them (router will overwrite, re-set after navigate)
+    const slides = result.slides || [];
+    S.slides = slides;
     S.images = {};
+    await navigate('editor', { projectId: S.projectId, carouselId: carousel.id });
+    // Router reloaded carousel from DB (empty slides_json). Restore generated slides.
+    S.slides = slides;
+    S.images = {};
+
+    stopGeneratingScreen();
+    setGenBar(100);
     renderAll();
     scheduleSave();
+
   } catch (e) {
-    alert('Erro ao gerar: ' + e.message);
-    navigate('project', { projectId: S.projectId });
-  } finally {
-    stopLoading();
+    phaseTimers.forEach(clearTimeout);
+    genLog('Erro: ' + e.message, 'error');
+    stopGeneratingScreen();
+    setTimeout(() => navigate('project', { projectId: S.projectId }), 2500);
   }
 }
