@@ -132,11 +132,12 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .img-preview-wrap { display: flex; align-items: center; gap: 10px; }
 .img-preview { height: 64px; border-radius: 4px; object-fit: cover; }
 .btn-remove-img { background: transparent; border: none; color: var(--text-muted); font-size: 11px; cursor: pointer; text-decoration: underline; }
-.refine-section { border-top: 1px solid var(--border); padding-top: 12px; }
-.btn-refine { background: transparent; border: 1px solid #333; color: #888; border-radius: 5px; padding: 8px 12px; font-size: 12px; cursor: pointer; width: 100%; transition: all .15s; }
-.btn-refine:hover { border-color: #555; color: var(--text); }
-.refine-input-wrap { display: none; flex-direction: column; gap: 8px; margin-top: 8px; }
-.refine-input-wrap.open { display: flex; }
+.refine-section { border-top: 1px solid var(--border); padding-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+.img-suggestions-label { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+.img-suggestions { display: flex; flex-direction: column; gap: 5px; }
+.img-suggestion-chip { background: var(--bg-input); border: 1px solid var(--border); color: var(--text-muted); border-radius: 4px; padding: 5px 8px; font-size: 11px; cursor: pointer; text-align: left; transition: all .15s; }
+.img-suggestion-chip:hover { border-color: #555; color: var(--text); }
+.img-suggestion-chip.copied { border-color: #22c55e; color: #22c55e; }
 .icon-picker { display: flex; flex-direction: column; gap: 6px; }
 .icon-search-wrap { display: flex; gap: 6px; align-items: center; }
 .icon-search-input { flex: 1; }

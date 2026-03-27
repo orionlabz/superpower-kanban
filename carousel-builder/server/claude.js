@@ -45,11 +45,11 @@ Regras obrigatórias:
 - Variar entre: dark, steps, overlay, split
 
 Templates e campos por tipo (use HTML inline para ênfase: <em> para itálico, <strong> para negrito):
-- cover:   { template, layout, headline_html, body_html }
-- split:   { template, layout, headline_html, body_html }
+- cover:   { template, layout, headline_html, body_html, img_suggestions (array de 5 strings curtas em português descrevendo imagens para busca) }
+- split:   { template, layout, headline_html, body_html, img_suggestions (array de 5 strings curtas em português descrevendo imagens para busca) }
 - dark:    { template, layout, section_number, section_title, body_html, list_items (array max 4), conclusion_html }
 - steps:   { template, layout, section_title, steps (array {label,text_html} max 4), call_to_action_html }
-- overlay: { template, layout, section_number, section_title, headline_html, body_html }
+- overlay: { template, layout, section_number, section_title, headline_html, body_html, img_suggestions (array de 5 strings curtas em português descrevendo imagens para busca) }
 - cta:     { template, layout, headline_html, body_html, cta_text, cta_word, cta_suffix }
 
 Retorne SOMENTE o JSON: { "slides": [...] }

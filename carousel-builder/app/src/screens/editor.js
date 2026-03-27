@@ -385,6 +385,9 @@ function renderPanel() {
   <div id="tpl-picker-slot"></div>`;
 
   if (hasImg) {
+    const suggestions = (!imgSrc && slide.img_suggestions?.length)
+      ? slide.img_suggestions
+      : [];
     html += `<div class="field-group"><div class="field-label">Imagem</div>
       ${imgSrc
         ? `<div class="img-preview-wrap">
@@ -397,6 +400,10 @@ function renderPanel() {
              <div class="drop-zone-text">Clique para fazer upload<br>JPG · PNG · WEBP</div>
            </div>`
       }
+      ${suggestions.length ? `<div class="img-suggestions-label">Sugestões de imagem</div>
+        <div class="img-suggestions">
+          ${suggestions.map(s => `<button class="img-suggestion-chip" data-suggestion="${esc(s)}">${esc(s)}</button>`).join('')}
+        </div>` : ''}
     </div>`;
     if (imgSrc) {
       html += `<div class="field-group">
@@ -460,13 +467,10 @@ function renderPanel() {
   }
 
   html += `<div class="refine-section">
-    <button class="btn-refine" id="btn-refine-toggle">✦ Refinar com IA</button>
-    <div id="refine-wrap" class="refine-input-wrap">
-      <textarea id="refine-instr" class="field-textarea" placeholder="O que você quer mudar neste slide?" rows="3"></textarea>
-      <div class="refine-actions">
-        <button id="btn-refine-ok" class="btn-confirm">Refinar</button>
-        <button id="btn-refine-cancel" class="btn-cancel">Cancelar</button>
-      </div>
+    <div class="field-label">✦ Refinar com IA</div>
+    <textarea id="refine-instr" class="field-textarea" placeholder="O que você quer mudar neste slide?" rows="3"></textarea>
+    <div class="refine-actions">
+      <button id="btn-refine-ok" class="btn-confirm">Refinar</button>
     </div>
   </div>`;
 
@@ -526,6 +530,14 @@ function renderPanel() {
   const adjustImgBtn = panel.querySelector('#btn-adjust-img');
   if (adjustImgBtn) adjustImgBtn.onclick = showImgTransformOverlay;
 
+  panel.querySelectorAll('.img-suggestion-chip').forEach(btn => {
+    btn.onclick = () => {
+      navigator.clipboard.writeText(btn.dataset.suggestion).catch(() => {});
+      btn.classList.add('copied');
+      setTimeout(() => btn.classList.remove('copied'), 1500);
+    };
+  });
+
   // List items
   panel.querySelectorAll('input[data-list-idx]').forEach(el => {
     el.addEventListener('input', () => setListItem(Number(el.dataset.listIdx), el.value));
@@ -547,18 +559,8 @@ function renderPanel() {
   if (addStepBtn) addStepBtn.onclick = addStep;
 
   // Refine
-  const refineToggle = panel.querySelector('#btn-refine-toggle');
-  if (refineToggle) refineToggle.onclick = () => {
-    const wrap = document.getElementById('refine-wrap');
-    if (wrap) wrap.classList.toggle('open');
-  };
   const refineOk = panel.querySelector('#btn-refine-ok');
   if (refineOk) refineOk.onclick = doRefine;
-  const refineCancel = panel.querySelector('#btn-refine-cancel');
-  if (refineCancel) refineCancel.onclick = () => {
-    const wrap = document.getElementById('refine-wrap');
-    if (wrap) wrap.classList.remove('open');
-  };
 
   // Icon pickers for steps layout c
   wireIconPickers();
@@ -1106,7 +1108,7 @@ export function showNewCarouselModal() {
       <div class="modal-body">
         <div class="form-group">
           <label class="form-label">Tema / assunto</label>
-          <input id="modal-topic" class="form-input" type="text" placeholder="Ex: Por que criadores digitais fracassam nos primeiros 90 dias">
+          <textarea id="modal-topic" class="form-textarea" placeholder="Ex: Por que criadores digitais fracassam nos primeiros 90 dias" rows="3"></textarea>
         </div>
         <div class="form-group">
           <label class="form-label">Audiência</label>
