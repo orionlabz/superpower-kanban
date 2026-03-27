@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS themes (
   name TEXT NOT NULL DEFAULT 'Sem título',
   font_display TEXT NOT NULL DEFAULT 'Playfair Display',
   font_body TEXT NOT NULL DEFAULT 'Inter',
+  font_ui TEXT NOT NULL DEFAULT 'JetBrains Mono',
   color_bg TEXT NOT NULL DEFAULT '#000000',
   color_text TEXT NOT NULL DEFAULT '#e8e8e8',
   color_emphasis TEXT NOT NULL DEFAULT '#CCFF00',
@@ -60,6 +61,9 @@ CREATE TABLE IF NOT EXISTS settings (
 );
 `);
 
+// Migration: add font_ui column to existing DBs
+try { db.exec(`ALTER TABLE themes ADD COLUMN font_ui TEXT NOT NULL DEFAULT 'JetBrains Mono'`); } catch {}
+
 // Seed: ensure global theme exists
 {
   const themeCount = db.prepare('SELECT COUNT(*) as c FROM themes').get();
@@ -79,7 +83,7 @@ CREATE TABLE IF NOT EXISTS settings (
 
 // ─── Column allowlists (prevent SQL injection via dynamic column names) ─────────
 
-const THEME_COLS = new Set(['name','font_display','font_body','color_bg','color_text','color_emphasis','color_secondary','color_detail','color_border','brand_name','brand_symbol','brand_logo_dark','brand_logo_light','nav_left','nav_right']);
+const THEME_COLS = new Set(['name','font_display','font_body','font_ui','color_bg','color_text','color_emphasis','color_secondary','color_detail','color_border','brand_name','brand_symbol','brand_logo_dark','brand_logo_light','nav_left','nav_right']);
 const PROJECT_COLS = new Set(['name','theme_id']);
 const CAROUSEL_COLS = new Set(['title','slides_json','images_json','thumbnail_path','project_id']);
 

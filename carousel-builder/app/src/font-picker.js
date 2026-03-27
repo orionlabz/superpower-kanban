@@ -10,6 +10,12 @@ export const BODY_FONTS = [
   'Source Sans 3', 'Karla', 'Mulish', 'Work Sans', 'Jost',
 ];
 
+// UI fonts — brand marks, nav labels, section numbers
+export const UI_FONTS = [
+  'JetBrains Mono', 'DM Mono', 'IBM Plex Mono', 'Space Mono', 'Fira Code',
+  'Roboto Mono', 'Space Grotesk', 'Syne', 'Barlow Condensed', 'Oswald',
+];
+
 /**
  * Font picker: shows preview of fonts, loads them from Google Fonts.
  * Usage: createFontPicker({ value: 'Inter', fonts: BODY_FONTS, label: 'Fonte do corpo', onChange: fn })

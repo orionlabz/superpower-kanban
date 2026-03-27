@@ -2,7 +2,7 @@ import { S } from '../state.js';
 import { api } from '../api.js';
 import { navigate } from '../router.js';
 import { createColorPicker } from '../color-picker.js';
-import { createFontPicker, DISPLAY_FONTS, BODY_FONTS } from '../font-picker.js';
+import { createFontPicker, DISPLAY_FONTS, BODY_FONTS, UI_FONTS } from '../font-picker.js';
 
 let currentTheme = null;
 let returnScreen = 'home';
@@ -74,6 +74,7 @@ export async function mountThemeEditor() {
               <h3 class="theme-section-title">Fontes</h3>
               <div class="form-group" id="picker-font-display"></div>
               <div class="form-group" id="picker-font-body"></div>
+              <div class="form-group" id="picker-font-ui"></div>
             </section>
             <section class="theme-section">
               <h3 class="theme-section-title">Cores</h3>
@@ -99,6 +100,10 @@ export async function mountThemeEditor() {
   const fpBody = createFontPicker({ value: currentTheme.font_body, fonts: BODY_FONTS, label: 'Fonte do corpo', onChange: v => { currentTheme.font_body = v; updatePreview(); } });
   document.getElementById('picker-font-body').appendChild(fpBody.el);
   fontPickers.body = fpBody;
+
+  const fpUi = createFontPicker({ value: currentTheme.font_ui || 'JetBrains Mono', fonts: UI_FONTS, label: 'Fonte UI (marca · nav · números)', onChange: v => { currentTheme.font_ui = v; updatePreview(); } });
+  document.getElementById('picker-font-ui').appendChild(fpUi.el);
+  fontPickers.ui = fpUi;
 
   // Color pickers
   const colorFields = [

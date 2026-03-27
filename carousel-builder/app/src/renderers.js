@@ -20,8 +20,9 @@ export const LAYOUT_NAMES = {
   cta:     { a: 'Headline', c: 'Centrado' },
 };
 
-const PF = (t) => `font-family:'${t?.font_display || 'Playfair Display'}',serif;`;
+const PF  = (t) => `font-family:'${t?.font_display || 'Playfair Display'}',serif;`;
 const INT = (t) => `font-family:'${t?.font_body || 'Inter'}',sans-serif;`;
+const UI  = (t) => `font-family:'${t?.font_ui || 'JetBrains Mono'}',monospace;`;
 
 function imgPos(slide) {
   const p = slide.img_position;
@@ -33,7 +34,7 @@ function imgPos(slide) {
 function navBar(t) {
   const nav_left  = t?.nav_left  || 'CATEGORIA';
   const nav_right = t?.nav_right || 'SÉRIE';
-  return `<div style="${INT(t)}display:flex;align-items:center;gap:22px;font-size:22px;letter-spacing:.18em;color:#303030;text-transform:uppercase;margin-bottom:96px;">
+  return `<div style="${UI(t)}display:flex;align-items:center;gap:22px;font-size:22px;letter-spacing:.18em;color:#303030;text-transform:uppercase;margin-bottom:96px;">
     <span>${esc(nav_left)}</span>
     <div style="flex:1;height:1px;background:#1e1e1e;"></div>
     <span>${esc(nav_right)}</span>
@@ -43,7 +44,7 @@ function navBar(t) {
 function footerBar(t) {
   const brand_symbol = t?.brand_symbol || '⬥';
   const brand_name   = t?.brand_name   || 'Marca';
-  return `<div style="${INT(t)}display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:36px;">
+  return `<div style="${UI(t)}display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:36px;">
     <span style="font-size:28px;color:#252525;">${esc(brand_symbol)} ${esc(brand_name)}</span>
     <span style="font-size:22px;letter-spacing:.14em;color:#252525;text-transform:uppercase;">${esc(brand_name.toUpperCase())}</span>
   </div>`;
@@ -62,7 +63,7 @@ export const RENDERERS = {
       return `<div style="position:relative;width:1080px;height:1350px;overflow:hidden;background:#000;">
         ${bg}
         <div style="position:absolute;inset:0;display:flex;flex-direction:column;padding:54px 76px 80px;">
-          <div style="${INT(t)}font-size:22px;color:#fff;opacity:.9;">${esc(brand_symbol)} ${esc(brand_name)}</div>
+          <div style="${UI(t)}font-size:22px;color:#fff;opacity:.9;">${esc(brand_symbol)} ${esc(brand_name)}</div>
           <div style="flex:1;"></div>
           <div style="${PF(t)}font-size:84px;line-height:1.05;font-weight:400;color:#fff;margin-bottom:28px;">
             ${headline}
@@ -85,10 +86,10 @@ export const RENDERERS = {
         ${bg}
         <div style="position:absolute;inset:0;display:flex;flex-direction:column;padding:54px 76px 80px;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:auto;">
-            <div style="${INT(t)}font-size:22px;color:#fff;opacity:.9;">${esc(brand_symbol)} ${esc(brand_name)}</div>
+            <div style="${UI(t)}font-size:22px;color:#fff;opacity:.9;">${esc(brand_symbol)} ${esc(brand_name)}</div>
           </div>
           <div style="display:flex;flex-direction:column;">
-            <div style="${INT(t)}font-size:18px;letter-spacing:.18em;color:#333;text-transform:uppercase;margin-bottom:24px;">${esc(nav_left)}</div>
+            <div style="${UI(t)}font-size:18px;letter-spacing:.18em;color:#333;text-transform:uppercase;margin-bottom:24px;">${esc(nav_left)}</div>
             <div style="${PF(t)}font-size:84px;line-height:1.05;font-weight:400;color:#fff;margin-bottom:28px;">
               ${headline}
             </div>
@@ -113,8 +114,8 @@ export const RENDERERS = {
         ${bg}
         <div style="position:absolute;inset:0;display:flex;flex-direction:column;padding:54px 76px 80px;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;">
-            <div style="${INT(t)}font-size:22px;color:#fff;opacity:.85;">${esc(brand_symbol)} ${esc(brand_name)}</div>
-            <div style="${INT(t)}font-size:18px;letter-spacing:.18em;color:#2a2a2a;text-transform:uppercase;">${esc(nav_right)}</div>
+            <div style="${UI(t)}font-size:22px;color:#fff;opacity:.85;">${esc(brand_symbol)} ${esc(brand_name)}</div>
+            <div style="${UI(t)}font-size:18px;letter-spacing:.18em;color:#2a2a2a;text-transform:uppercase;">${esc(nav_right)}</div>
           </div>
           <div style="width:100%;height:1px;background:linear-gradient(to right,#fff,transparent);margin-bottom:48px;"></div>
           <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
@@ -124,7 +125,7 @@ export const RENDERERS = {
             <div style="${INT(t)}font-size:27px;color:#666;line-height:1.5;">${body}</div>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;">
-            <div style="${INT(t)}font-size:18px;letter-spacing:.18em;color:#252525;text-transform:uppercase;">${esc(nav_left)}</div>
+            <div style="${UI(t)}font-size:18px;letter-spacing:.18em;color:#252525;text-transform:uppercase;">${esc(nav_left)}</div>
           </div>
         </div>
       </div>`;
@@ -164,7 +165,7 @@ export const RENDERERS = {
       const conclusion = h(slide.conclusion_html || esc(slide.conclusion || ''));
       return `<div style="width:1080px;height:1350px;background:#000;display:flex;flex-direction:column;padding:54px 76px 60px;">
         ${navBar(t)}
-        <div style="${INT(t)}font-size:22px;letter-spacing:.18em;color:#333;text-transform:uppercase;margin-bottom:16px;">${esc(slide.section_number)}</div>
+        <div style="${UI(t)}font-size:22px;letter-spacing:.18em;color:#333;text-transform:uppercase;margin-bottom:16px;">${esc(slide.section_number)}</div>
         <div style="${PF(t)}font-size:62px;line-height:1.1;font-weight:400;color:#fff;margin-bottom:36px;">${esc(slide.section_title)}</div>
         <div style="${INT(t)}font-size:27px;color:#666;line-height:1.5;margin-bottom:32px;">${body}</div>
         <div style="margin-bottom:24px;">${items}</div>
@@ -189,12 +190,12 @@ export const RENDERERS = {
       return `<div style="width:1080px;height:1350px;background:#060606;display:flex;flex-direction:column;padding:54px 76px 80px;position:relative;overflow:hidden;">
         <div style="${PF(t)}position:absolute;top:-20px;right:40px;font-size:480px;color:#111;line-height:1;user-select:none;pointer-events:none;letter-spacing:-.02em;">${esc(slide.section_number||'')}</div>
         <div style="display:flex;align-items:center;gap:22px;font-size:0;padding-bottom:40px;position:relative;">
-          <span style="${INT(t)}font-size:18px;letter-spacing:.18em;color:#282828;text-transform:uppercase;">${esc(nav_left)}</span>
+          <span style="${UI(t)}font-size:18px;letter-spacing:.18em;color:#282828;text-transform:uppercase;">${esc(nav_left)}</span>
           <div style="flex:1;height:1px;background:#1e1e1e;"></div>
-          <span style="${INT(t)}font-size:18px;letter-spacing:.18em;color:#282828;text-transform:uppercase;">${esc(nav_right)}</span>
+          <span style="${UI(t)}font-size:18px;letter-spacing:.18em;color:#282828;text-transform:uppercase;">${esc(nav_right)}</span>
         </div>
         <div style="flex:1;display:flex;flex-direction:column;position:relative;">
-          <div style="${INT(t)}font-size:18px;letter-spacing:.22em;color:#2e2e2e;text-transform:uppercase;margin-bottom:24px;">Seção ${esc(slide.section_number||'')}</div>
+          <div style="${UI(t)}font-size:18px;letter-spacing:.22em;color:#2e2e2e;text-transform:uppercase;margin-bottom:24px;">Seção ${esc(slide.section_number||'')}</div>
           <div style="${PF(t)}font-size:72px;line-height:1.05;font-weight:400;color:#e8e8e8;margin-bottom:40px;">${esc(slide.section_title)}</div>
           <div style="${INT(t)}font-size:27px;color:#505050;line-height:1.6;margin-bottom:48px;">${body}</div>
           <div style="margin-bottom:0;">${items}</div>
@@ -203,8 +204,8 @@ export const RENDERERS = {
           </div>
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;padding-top:36px;">
-          <span style="${INT(t)}font-size:22px;color:#1e1e1e;">${esc(brand_symbol)} ${esc(brand_name)}</span>
-          <span style="${INT(t)}font-size:18px;letter-spacing:.14em;color:#1a1a1a;text-transform:uppercase;">${esc(brand_name)}</span>
+          <span style="${UI(t)}font-size:22px;color:#1e1e1e;">${esc(brand_symbol)} ${esc(brand_name)}</span>
+          <span style="${UI(t)}font-size:18px;letter-spacing:.14em;color:#1a1a1a;text-transform:uppercase;">${esc(brand_name)}</span>
         </div>
       </div>`;
     },
@@ -224,13 +225,13 @@ export const RENDERERS = {
       const conclusion = h(slide.conclusion_html || esc(slide.conclusion || ''));
       return `<div style="width:1080px;height:1350px;background:#000;display:flex;flex-direction:column;padding:54px 76px 80px;">
         <div style="display:flex;align-items:center;gap:22px;margin-bottom:48px;">
-          <span style="${INT(t)}font-size:18px;letter-spacing:.18em;color:#282828;text-transform:uppercase;">${esc(nav_left)}</span>
+          <span style="${UI(t)}font-size:18px;letter-spacing:.18em;color:#282828;text-transform:uppercase;">${esc(nav_left)}</span>
           <div style="flex:1;height:1px;background:#1e1e1e;"></div>
-          <span style="${INT(t)}font-size:18px;letter-spacing:.18em;color:#282828;text-transform:uppercase;">${esc(nav_right)}</span>
+          <span style="${UI(t)}font-size:18px;letter-spacing:.18em;color:#282828;text-transform:uppercase;">${esc(nav_right)}</span>
         </div>
         <div style="display:flex;gap:52px;align-items:flex-start;margin-bottom:52px;border-top:1px solid #1a1a1a;padding-top:36px;">
           <div style="flex:0 0 160px;">
-            <div style="${INT(t)}font-size:14px;letter-spacing:.18em;color:#2a2a2a;text-transform:uppercase;margin-bottom:8px;">Seção</div>
+            <div style="${UI(t)}font-size:14px;letter-spacing:.18em;color:#2a2a2a;text-transform:uppercase;margin-bottom:8px;">Seção</div>
             <div style="${PF(t)}font-size:120px;color:#161616;line-height:1;letter-spacing:-.02em;">${esc(slide.section_number||'')}</div>
           </div>
           <div style="flex:1;padding-top:8px;">
@@ -241,8 +242,8 @@ export const RENDERERS = {
         <div style="margin-bottom:24px;">${items}</div>
         <div style="${INT(t)}font-size:27px;color:#3a3a3a;line-height:1.5;margin-bottom:auto;">${conclusion}</div>
         <div style="display:flex;justify-content:space-between;align-items:center;padding-top:36px;">
-          <span style="${INT(t)}font-size:22px;color:#252525;">${esc(brand_symbol)} ${esc(brand_name)}</span>
-          <span style="${INT(t)}font-size:22px;letter-spacing:.14em;color:#252525;text-transform:uppercase;">${esc(brand_name)}</span>
+          <span style="${UI(t)}font-size:22px;color:#252525;">${esc(brand_symbol)} ${esc(brand_name)}</span>
+          <span style="${UI(t)}font-size:22px;letter-spacing:.14em;color:#252525;text-transform:uppercase;">${esc(brand_name)}</span>
         </div>
       </div>`;
     },
@@ -273,7 +274,7 @@ export const RENDERERS = {
         `<div style="display:flex;align-items:baseline;gap:36px;margin-bottom:32px;">
           <span style="${PF(t)}font-size:100px;color:#161616;line-height:1;flex-shrink:0;width:100px;">${esc(s.label.match(/\d+/)?.[0] || '')}</span>
           <div style="flex:1;">
-            <div style="${INT(t)}font-size:22px;font-weight:500;color:#aaa;letter-spacing:.06em;margin-bottom:6px;">${esc(s.label.replace(/^\d+[:,.]?\s*/,''))}</div>
+            <div style="${UI(t)}font-size:22px;font-weight:500;color:#aaa;letter-spacing:.06em;margin-bottom:6px;">${esc(s.label.replace(/^\d+[:,.]?\s*/,''))}</div>
             <div style="${INT(t)}font-size:24px;color:#444;line-height:1.5;">${h(s.text_html || esc(s.text || ''))}</div>
           </div>
         </div>`
@@ -285,18 +286,18 @@ export const RENDERERS = {
       const cta = h(slide.call_to_action_html || (slide.call_to_action ? esc(slide.call_to_action) + (slide.call_to_action_italic ? ' <em>' + esc(slide.call_to_action_italic) + '</em>' : '') : ''));
       return `<div style="width:1080px;height:1350px;background:#000;display:flex;flex-direction:column;padding:54px 76px 80px;">
         <div style="display:flex;align-items:center;gap:22px;margin-bottom:48px;">
-          <span style="${INT(t)}font-size:18px;letter-spacing:.18em;color:#282828;text-transform:uppercase;">${esc(nav_left)}</span>
+          <span style="${UI(t)}font-size:18px;letter-spacing:.18em;color:#282828;text-transform:uppercase;">${esc(nav_left)}</span>
           <div style="flex:1;height:1px;background:#1e1e1e;"></div>
-          <span style="${INT(t)}font-size:18px;letter-spacing:.18em;color:#282828;text-transform:uppercase;">${esc(nav_right)}</span>
+          <span style="${UI(t)}font-size:18px;letter-spacing:.18em;color:#282828;text-transform:uppercase;">${esc(nav_right)}</span>
         </div>
-        ${slide.section_title ? `<div style="${INT(t)}font-size:18px;letter-spacing:.2em;color:#2a2a2a;text-transform:uppercase;margin-bottom:48px;">${esc(slide.section_title)}</div>` : ''}
+        ${slide.section_title ? `<div style="${UI(t)}font-size:18px;letter-spacing:.2em;color:#2a2a2a;text-transform:uppercase;margin-bottom:48px;">${esc(slide.section_title)}</div>` : ''}
         <div style="flex:1;">${steps}</div>
         <div style="${PF(t)}font-size:62px;font-weight:400;color:#fff;line-height:1.1;margin-bottom:auto;padding-top:24px;">
           ${cta}
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;padding-top:36px;">
-          <span style="${INT(t)}font-size:22px;color:#252525;">${esc(brand_symbol)} ${esc(brand_name)}</span>
-          <span style="${INT(t)}font-size:22px;letter-spacing:.14em;color:#252525;text-transform:uppercase;">${esc(brand_name)}</span>
+          <span style="${UI(t)}font-size:22px;color:#252525;">${esc(brand_symbol)} ${esc(brand_name)}</span>
+          <span style="${UI(t)}font-size:22px;letter-spacing:.14em;color:#252525;text-transform:uppercase;">${esc(brand_name)}</span>
         </div>
       </div>`;
     },
@@ -316,16 +317,16 @@ export const RENDERERS = {
         }
         return `<div style="background:#0d0d0d;border-radius:12px;padding:40px 36px;display:flex;flex-direction:column;">
           ${iconHTML}
-          <div style="${INT(t)}font-size:20px;color:#888;font-weight:500;letter-spacing:.04em;margin-bottom:12px;">${esc(s.label.replace(/^\d+[:,.]?\s*/,''))}</div>
+          <div style="${UI(t)}font-size:20px;color:#888;font-weight:500;letter-spacing:.04em;margin-bottom:12px;">${esc(s.label.replace(/^\d+[:,.]?\s*/,''))}</div>
           <div style="${INT(t)}font-size:22px;color:#3a3a3a;line-height:1.5;">${h(s.text_html || esc(s.text || ''))}</div>
         </div>`;
       }).join('');
       const cta = h(slide.call_to_action_html || (slide.call_to_action ? esc(slide.call_to_action) + (slide.call_to_action_italic ? ' <em>' + esc(slide.call_to_action_italic) + '</em>' : '') : ''));
       return `<div style="width:1080px;height:1350px;background:#000;display:flex;flex-direction:column;padding:54px 76px 80px;">
         <div style="display:flex;align-items:center;gap:22px;margin-bottom:48px;">
-          <span style="${INT(t)}font-size:18px;letter-spacing:.18em;color:#282828;text-transform:uppercase;">${esc(nav_left)}</span>
+          <span style="${UI(t)}font-size:18px;letter-spacing:.18em;color:#282828;text-transform:uppercase;">${esc(nav_left)}</span>
           <div style="flex:1;height:1px;background:#1e1e1e;"></div>
-          <span style="${INT(t)}font-size:18px;letter-spacing:.18em;color:#282828;text-transform:uppercase;">${esc(nav_right)}</span>
+          <span style="${UI(t)}font-size:18px;letter-spacing:.18em;color:#282828;text-transform:uppercase;">${esc(nav_right)}</span>
         </div>
         <div style="${PF(t)}font-size:52px;font-weight:400;color:#fff;line-height:1.1;margin-bottom:40px;">${esc(slide.section_title||'')}</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;flex:1;">${cards}</div>
@@ -349,7 +350,7 @@ export const RENDERERS = {
         </div>
         <div style="flex:1;padding:32px 62px 60px;display:flex;flex-direction:column;">
           ${navBar(t)}
-          <div style="${INT(t)}font-size:22px;letter-spacing:.18em;color:#333;text-transform:uppercase;margin-bottom:12px;">${esc(slide.section_number)}</div>
+          <div style="${UI(t)}font-size:22px;letter-spacing:.18em;color:#333;text-transform:uppercase;margin-bottom:12px;">${esc(slide.section_number)}</div>
           <div style="${PF(t)}font-size:62px;font-weight:400;color:#fff;line-height:1.1;margin-bottom:16px;">${esc(slide.section_title)}</div>
           <div style="${PF(t)}font-size:36px;font-weight:400;font-style:italic;color:#aaa;margin-bottom:20px;">${esc(slide.headline)}</div>
           <div style="${INT(t)}font-size:24px;color:#666;line-height:1.5;margin-bottom:auto;">${body}</div>
@@ -373,19 +374,19 @@ export const RENDERERS = {
         <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.97) 0%,rgba(0,0,0,.75) 40%,rgba(0,0,0,.2) 70%,transparent 100%);"></div>
         <div style="position:absolute;inset:0;display:flex;flex-direction:column;padding:54px 76px 80px;">
           <div style="display:flex;align-items:center;gap:22px;">
-            <span style="${INT(t)}font-size:18px;letter-spacing:.18em;color:rgba(255,255,255,.18);text-transform:uppercase;">${esc(nav_left)}</span>
+            <span style="${UI(t)}font-size:18px;letter-spacing:.18em;color:rgba(255,255,255,.18);text-transform:uppercase;">${esc(nav_left)}</span>
             <div style="flex:1;height:1px;background:rgba(255,255,255,.06);"></div>
-            <span style="${INT(t)}font-size:18px;letter-spacing:.18em;color:rgba(255,255,255,.18);text-transform:uppercase;">${esc(nav_right)}</span>
+            <span style="${UI(t)}font-size:18px;letter-spacing:.18em;color:rgba(255,255,255,.18);text-transform:uppercase;">${esc(nav_right)}</span>
           </div>
           <div style="flex:1;"></div>
-          <div style="${INT(t)}font-size:18px;letter-spacing:.18em;color:#3a3a3a;text-transform:uppercase;margin-bottom:20px;">${esc(slide.section_number)} — ${esc(slide.section_title)}</div>
+          <div style="${UI(t)}font-size:18px;letter-spacing:.18em;color:#3a3a3a;text-transform:uppercase;margin-bottom:20px;">${esc(slide.section_number)} — ${esc(slide.section_title)}</div>
           <div style="${PF(t)}font-size:72px;line-height:1.05;font-weight:400;color:#fff;margin-bottom:28px;">
             ${headline}
           </div>
           <div style="${INT(t)}font-size:27px;color:#666;line-height:1.5;margin-bottom:36px;">${body}</div>
           <div style="display:flex;justify-content:space-between;align-items:center;">
-            <span style="${INT(t)}font-size:22px;color:#1e1e1e;">${esc(brand_symbol)} ${esc(brand_name)}</span>
-            <span style="${INT(t)}font-size:22px;letter-spacing:.14em;color:#1a1a1a;text-transform:uppercase;">${esc(brand_name)}</span>
+            <span style="${UI(t)}font-size:22px;color:#1e1e1e;">${esc(brand_symbol)} ${esc(brand_name)}</span>
+            <span style="${UI(t)}font-size:22px;letter-spacing:.14em;color:#1a1a1a;text-transform:uppercase;">${esc(brand_name)}</span>
           </div>
         </div>
       </div>`;
@@ -399,7 +400,7 @@ export const RENDERERS = {
       const headline = h(slide.headline_html || (slide.headline ? esc(slide.headline) + (slide.headline_italic ? ' <em>' + esc(slide.headline_italic) + '</em>' : '') : ''));
       const body = h(slide.body_html || esc(slide.body || ''));
       return `<div style="width:1080px;height:1350px;background:#000;border:1px solid #161616;display:flex;flex-direction:column;padding:54px 76px 80px;">
-        <div style="${INT(t)}font-size:22px;color:#fff;margin-bottom:auto;">${esc(brand_symbol)} ${esc(brand_name)}</div>
+        <div style="${UI(t)}font-size:22px;color:#fff;margin-bottom:auto;">${esc(brand_symbol)} ${esc(brand_name)}</div>
         <div style="${PF(t)}font-size:84px;line-height:1.05;font-weight:400;font-style:italic;color:#fff;margin-bottom:40px;">
           ${headline}
         </div>
@@ -418,7 +419,7 @@ export const RENDERERS = {
       const headline = h(slide.headline_html || (slide.headline ? esc(slide.headline) + (slide.headline_italic ? ' <em>' + esc(slide.headline_italic) + '</em>' : '') : ''));
       const body = h(slide.body_html || esc(slide.body || ''));
       return `<div style="width:1080px;height:1350px;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 96px;text-align:center;">
-        <div style="${INT(t)}font-size:22px;color:#252525;letter-spacing:.18em;margin-bottom:60px;">${esc(brand_symbol)} ${esc(brand_name)}</div>
+        <div style="${UI(t)}font-size:22px;color:#252525;letter-spacing:.18em;margin-bottom:60px;">${esc(brand_symbol)} ${esc(brand_name)}</div>
         <div style="${PF(t)}font-size:84px;line-height:1.05;font-weight:400;color:#fff;margin-bottom:36px;">
           ${headline}
         </div>

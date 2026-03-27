@@ -3,7 +3,8 @@ export function themeStyleBlock(theme) {
   if (!theme) theme = defaultTheme();
   const displayFont = theme.font_display || 'Playfair Display';
   const bodyFont = theme.font_body || 'Inter';
-  const fontUrl = buildGoogleFontsUrl(displayFont, bodyFont);
+  const uiFont = theme.font_ui || 'JetBrains Mono';
+  const fontUrl = buildGoogleFontsUrl(displayFont, bodyFont, uiFont);
 
   return `<style>
 @import url('${fontUrl}');
@@ -16,6 +17,7 @@ export function themeStyleBlock(theme) {
   --t-border: ${theme.color_border || '#1e1e1e'};
   --t-font-display: '${displayFont}';
   --t-font-body: '${bodyFont}';
+  --t-font-ui: '${uiFont}';
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: var(--t-bg); }
@@ -25,11 +27,14 @@ strong { font-weight: 700; }
 </style>`;
 }
 
-export function buildGoogleFontsUrl(display, body) {
+export function buildGoogleFontsUrl(display, body, ui) {
   const families = [];
   const toParam = (f) => f.replace(/ /g, '+');
-  if (display) families.push(`family=${toParam(display)}:ital,wght@0,400;0,500;1,400;1,500`);
-  if (body && body !== display) families.push(`family=${toParam(body)}:wght@300;400;500;600`);
+  const seen = new Set();
+  const add = (f, variant) => { if (f && !seen.has(f)) { seen.add(f); families.push(`family=${toParam(f)}:${variant}`); } };
+  add(display, 'ital,wght@0,400;0,500;1,400;1,500');
+  add(body,    'wght@300;400;500;600');
+  add(ui,      'wght@400;500');
   return `https://fonts.googleapis.com/css2?${families.join('&')}&display=swap`;
 }
 
@@ -37,6 +42,7 @@ export function defaultTheme() {
   return {
     font_display: 'Playfair Display',
     font_body: 'Inter',
+    font_ui: 'JetBrains Mono',
     color_bg: '#000000',
     color_text: '#e8e8e8',
     color_emphasis: '#CCFF00',
