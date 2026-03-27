@@ -9,7 +9,7 @@ import { saveBrandLogo } from './storage.js';
 
 export async function handleRoute(req, res, readBody, json) {
   const url = new URL(req.url, `http://localhost`);
-  const path = url.pathname;
+  const path = url.pathname.replace(/^\/api/, '');
   const method = req.method;
 
   // ── AI endpoints ─────────────────────────────────────────────────────────────

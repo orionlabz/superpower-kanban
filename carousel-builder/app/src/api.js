@@ -1,4 +1,4 @@
-const BASE = '';  // same origin when served by bridge; proxy in dev
+const BASE = '/api';
 
 async function req(method, path, body) {
   const opts = { method, headers: {} };
@@ -52,7 +52,7 @@ export const api = {
 
   // Uploads
   uploadBrand: async (file) => {
-    const r = await fetch('/upload/brand', {
+    const r = await fetch('/api/upload/brand', {
       method: 'POST',
       headers: { 'Content-Type': file.type, 'X-Filename': file.name },
       body: file,
@@ -66,7 +66,7 @@ export async function checkBridge() {
   try {
     const ctrl = new AbortController();
     setTimeout(() => ctrl.abort(), 1500);
-    const r = await fetch('/ping', { signal: ctrl.signal });
+    const r = await fetch('/api/ping', { signal: ctrl.signal });
     return r.ok;
   } catch { return false; }
 }

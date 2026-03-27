@@ -56,31 +56,30 @@ async function serveStatic(req, res) {
 
 async function handleRequest(req, res) {
   if (req.method === 'OPTIONS') { cors(res); res.writeHead(204); res.end(); return; }
-  if (req.url === '/ping') return json(res, { ok: true });
+  if (req.url === '/api/ping') return json(res, { ok: true });
   if (req.url?.startsWith('/storage/')) return serveStorageFile(req.url, res);
 
-  try {
-    const handled = await handleRoute(req, res, readBody, json);
-    if (handled !== null) return;
-  } catch (e) {
-    return json(res, { error: e.message }, 500);
+  // API routes (all under /api/*)
+  if (req.url?.startsWith('/api/')) {
+    try {
+      const handled = await handleRoute(req, res, readBody, json);
+      if (handled !== null) return;
+    } catch (e) {
+      return json(res, { error: e.message }, 500);
+    }
+    return json(res, { error: 'Not found' }, 404);
   }
 
+  // Static files, then SPA fallback
   const served = await serveStatic(req, res);
   if (!served) {
-    // SPA fallback: paths without a file extension are frontend routes
-    const hasExt = /\.\w+$/.test(req.url.split('?')[0]);
-    if (!hasExt) {
-      const indexPath = join(APP_DIR, 'index.html');
-      try {
-        const data = await readFile(indexPath);
-        cors(res);
-        res.writeHead(200, { 'Content-Type': 'text/html' });
-        res.end(data);
-      } catch { json(res, { error: 'Not found' }, 404); }
-    } else {
-      json(res, { error: 'Not found' }, 404);
-    }
+    const indexPath = join(APP_DIR, 'index.html');
+    try {
+      const data = await readFile(indexPath);
+      cors(res);
+      res.writeHead(200, { 'Content-Type': 'text/html' });
+      res.end(data);
+    } catch { json(res, { error: 'Not found' }, 404); }
   }
 }
 
