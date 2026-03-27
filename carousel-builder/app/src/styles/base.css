@@ -172,3 +172,11 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .btn-icon:hover { color: var(--text); }
 .empty-state { color: var(--text-muted); font-size: 14px; line-height: 1.6; padding: 40px 0; }
 .loading-inline { color: var(--text-muted); font-size: 13px; padding: 20px 0; }
+
+/* ── Project screen ──────────────────────────────────────────────────────── */
+.screen-project { min-height: 100vh; display: flex; flex-direction: column; }
+.project-main { flex: 1; padding: 32px 28px; max-width: 1080px; margin: 0 auto; width: 100%; }
+.project-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+.project-header-name { font-size: 14px; color: var(--text-muted); }
+.carousel-thumb { width: 100%; aspect-ratio: 1080/1350; object-fit: cover; border-radius: 4px; }
+.carousel-thumb-placeholder { width: 100%; aspect-ratio: 1080/1350; background: var(--bg-input); border-radius: 4px; }
