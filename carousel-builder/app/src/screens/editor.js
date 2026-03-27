@@ -200,7 +200,11 @@ function renderSidebar() {
     const iframe = document.createElement('iframe');
     iframe.srcdoc = slideDoc(i);
     iframe.title = 'Slide ' + (i + 1);
+    const shimmer = document.createElement('div');
+    shimmer.className = 'iframe-shimmer';
     wrap.appendChild(iframe);
+    wrap.appendChild(shimmer);
+    iframe.addEventListener('load', () => shimmer.remove(), { once: true });
     const label = document.createElement('div');
     label.className = 'thumb-label';
     label.textContent = (i + 1) + ' · ' + slide.template;
@@ -248,9 +252,25 @@ function renderPreview() {
     iframe.style.display         = 'block';
     iframe.title = 'Preview';
     wrap.appendChild(iframe);
+    // Show shimmer until first load completes
+    const shimmer = document.createElement('div');
+    shimmer.className = 'iframe-shimmer';
+    wrap.appendChild(shimmer);
+    iframe.addEventListener('load', () => shimmer.remove(), { once: true });
   }
 
-  iframe.srcdoc = slideDoc(S.active);
+  // Write directly to iframe body when already loaded — avoids blank reload flash
+  // Guard: only skip srcdoc if head already has the theme <style> (i.e. fully initialized)
+  const iframeDoc = iframe.contentDocument;
+  const activeSlide = S.slides[S.active];
+  if (iframeDoc?.head?.querySelector('style') && activeSlide) {
+    const fn = getRenderer(activeSlide);
+    iframeDoc.body.style.margin = '0';
+    iframeDoc.body.style.overflow = 'hidden';
+    iframeDoc.body.innerHTML = fn(activeSlide, S.images[S.active] || null, S.theme);
+  } else {
+    iframe.srcdoc = slideDoc(S.active);
+  }
   const counter = document.getElementById('slide-counter');
   if (counter) counter.textContent = `${S.active + 1} / ${S.slides.length}`;
 }
@@ -915,9 +935,13 @@ async function exportPNG() {
 // ─── Slide mutations ──────────────────────────────────────────────────────────
 function setActive(i) {
   S.active = i;
-  // Dismiss transform overlay when switching slides
   document.querySelector('.img-transform-overlay')?.remove();
-  renderAll();
+  // Update active class without rebuilding sidebar iframes
+  document.querySelectorAll('.thumb-item').forEach((el, idx) => {
+    el.classList.toggle('active', idx === i);
+  });
+  renderPreview();
+  renderPanel();
 }
 
 function setField(key, val) {
@@ -1029,7 +1053,17 @@ function refreshThumb(index) {
   const item = items[index];
   if (!item) return;
   const iframe = item.querySelector('iframe');
-  if (iframe) iframe.srcdoc = slideDoc(index);
+  if (!iframe) return;
+  const iframeDoc = iframe.contentDocument;
+  const slide = S.slides[index];
+  if (iframeDoc?.head?.querySelector('style') && slide) {
+    const fn = getRenderer(slide);
+    iframeDoc.body.style.margin = '0';
+    iframeDoc.body.style.overflow = 'hidden';
+    iframeDoc.body.innerHTML = fn(slide, S.images[index] || null, S.theme);
+  } else {
+    iframe.srcdoc = slideDoc(index);
+  }
 }
 
 // ─── Refine with AI ───────────────────────────────────────────────────────────

@@ -348,17 +348,22 @@ export const RENDERERS = {
       const photo = img
         ? `<img src="${img}" style="width:100%;height:100%;object-fit:cover;${imgPos(slide)}">`
         : `<div style="width:100%;height:100%;background:linear-gradient(160deg,#2a3540,#1a2228);"></div>`;
+      const headline = h(slide.headline_html || esc(slide.headline || ''));
       const body = h(slide.body_html || esc(slide.body || ''));
       return `<div style="width:1080px;height:1350px;background:#000;display:flex;flex-direction:column;padding:14px 14px 0;">
         <div style="height:680px;border-radius:18px;overflow:hidden;position:relative;flex-shrink:0;">
           ${photo}
-          <div style="position:absolute;bottom:0;left:0;right:0;height:200px;background:linear-gradient(to top,#000,transparent);"></div>
+          <div style="position:absolute;bottom:0;left:0;right:0;height:420px;background:linear-gradient(to top,#000 0%,rgba(0,0,0,.96) 10%,rgba(0,0,0,.88) 20%,rgba(0,0,0,.76) 32%,rgba(0,0,0,.6) 46%,rgba(0,0,0,.42) 60%,rgba(0,0,0,.24) 74%,rgba(0,0,0,.1) 87%,transparent 100%);"></div>
         </div>
         <div style="flex:1;padding:32px 62px 60px;display:flex;flex-direction:column;">
-          ${navBar(t)}
-          <div style="${UI(t)}font-size:22px;letter-spacing:.18em;color:#333;text-transform:uppercase;margin-bottom:12px;">${esc(slide.section_number)}</div>
-          <div style="${PF(t)}font-size:${hs(t,62)}px;font-weight:400;color:#fff;line-height:${lhH(t)};margin-bottom:16px;">${esc(slide.section_title)}</div>
-          <div style="${PF(t)}font-size:${bs(t,36)}px;font-weight:400;font-style:italic;color:#aaa;margin-bottom:20px;">${esc(slide.headline)}</div>
+          <div style="${UI(t)}display:flex;align-items:center;gap:22px;font-size:22px;letter-spacing:.18em;color:#303030;text-transform:uppercase;margin-bottom:36px;">
+            <span>${esc(slide.section_number)}</span>
+            <div style="flex:1;height:1px;background:#1e1e1e;"></div>
+            <span>${esc(t?.nav_right || 'SÉRIE')}</span>
+          </div>
+          <div style="${UI(t)}font-size:22px;letter-spacing:.18em;color:#333;text-transform:uppercase;margin-bottom:12px;">${esc(t?.nav_left || 'CATEGORIA')}</div>
+          <div style="${PF(t)}font-size:${hs(t,62)}px;font-weight:400;color:#fff;line-height:${lhH(t)};margin-bottom:12px;">${esc(slide.section_title)}</div>
+          ${headline ? `<div style="${PF(t)}font-size:${hs(t,42)}px;font-weight:400;font-style:italic;color:#aaa;line-height:${lhH(t)};margin-bottom:40px;">${headline}</div>` : ''}
           <div style="${INT(t)}font-size:${bs(t,32)}px;color:#666;line-height:${lhB(t)};margin-bottom:auto;">${body}</div>
           ${footerBar(t)}
         </div>

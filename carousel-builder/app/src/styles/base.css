@@ -86,7 +86,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .sidebar { width: 224px; min-width: 224px; background: var(--bg-panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; padding: 10px 8px; gap: 8px; min-height: 0; }
 .thumb-item { cursor: pointer; border: 1px solid transparent; border-radius: 6px; overflow: hidden; flex-shrink: 0; }
 .thumb-item.active { border-color: #fff; }
-.thumb-wrap { width: 208px; height: 260px; overflow: hidden; border-radius: 4px; background: #111; }
+.thumb-wrap { width: 208px; height: 260px; overflow: hidden; border-radius: 4px; background: #111; position: relative; }
 .thumb-wrap iframe { width: 1080px; height: 1350px; transform-origin: top left; transform: scale(0.1926); pointer-events: none; border: none; display: block; }
 .thumb-label { font-size: 11px; color: var(--text-muted); text-align: center; padding: 4px 0; }
 .btn-add-slide { background: transparent; border: 1px dashed var(--border); color: var(--text-muted); border-radius: 6px; padding: 8px; font-size: 12px; cursor: pointer; width: 208px; align-self: center; }
@@ -95,13 +95,15 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 /* Preview */
 .preview-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 24px 16px; gap: 16px; overflow-y: auto; background-color: #1a1a1c; background-image: radial-gradient(circle, rgba(255,255,255,.10) 1px, transparent 1px); background-size: 24px 24px; position: relative; }
 .preview-frame-wrap { position: relative; border-radius: 8px; box-shadow: 0 8px 40px rgba(0,0,0,.6); overflow: hidden; flex-shrink: 0; }
+.iframe-shimmer { position: absolute; inset: 0; z-index: 5; pointer-events: none; background: linear-gradient(90deg, #111 25%, #1c1c1c 50%, #111 75%); background-size: 200% 100%; animation: shimmer-sweep 1.4s ease-in-out infinite; }
+@keyframes shimmer-sweep { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 .template-pills { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
 .pill { background: transparent; border: 1px solid var(--border); color: var(--text-muted); border-radius: 20px; padding: 5px 14px; font-size: 12px; cursor: pointer; font-family: var(--font-sans); transition: all .15s; }
 .pill:hover { border-color: #555; color: var(--text); }
 .pill.active { background: #fff; color: #000; border-color: #fff; }
 
 /* Edit panel */
-.edit-panel { width: 288px; min-width: 288px; background: var(--bg-panel); border-left: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; padding: 16px; gap: 14px; }
+.edit-panel { width: 432px; min-width: 432px; background: var(--bg-panel); border-left: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; padding: 16px; gap: 14px; }
 .panel-header { display: flex; align-items: center; justify-content: space-between; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
 .panel-title { font-size: 12px; color: var(--text-muted); letter-spacing: .08em; }
 .btn-delete { background: transparent; border: none; color: #c44; font-size: 12px; cursor: pointer; padding: 4px 8px; transition: color .15s; }
@@ -133,7 +135,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .img-preview-wrap { display: flex; align-items: center; gap: 10px; }
 .img-preview { height: 64px; border-radius: 4px; object-fit: cover; }
 .btn-remove-img { background: transparent; border: none; color: var(--text-muted); font-size: 11px; cursor: pointer; text-decoration: underline; }
-.refine-section { border-top: 1px solid var(--border); padding-top: 14px; display: flex; flex-direction: column; gap: 8px; border-left: 2px solid rgba(204,255,0,0.2); padding-left: 10px; margin-left: -2px; background: rgba(204,255,0,0.02); border-radius: 0 4px 4px 0; }
+.refine-section { border-top: 1px solid var(--border); padding-top: 14px; display: flex; flex-direction: column; gap: 8px; border-left: 2px solid rgba(204,255,0,0.2); padding-left: 10px; padding-right: 10px; padding-bottom: 14px; margin-left: -2px; background: rgba(204,255,0,0.02); border-radius: 0 4px 4px 0; }
 .img-suggestions-label { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
 .img-suggestions { display: flex; flex-direction: column; gap: 5px; }
 .img-suggestion-chip { background: var(--bg-input); border: 1px solid var(--border); color: var(--text-muted); border-radius: 4px; padding: 5px 8px; font-size: 11px; cursor: pointer; text-align: left; transition: all .15s; }
@@ -149,7 +151,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .icon-btn svg { width: 14px; height: 14px; }
 .icon-current { display: flex; align-items: center; gap: 8px; }
 .icon-current svg, .icon-current img { width: 18px; height: 18px; }
-.refine-actions { display: flex; gap: 6px; }
+.refine-actions { display: flex; gap: 6px; justify-content: flex-end; }
 .btn-confirm { background: #fff; color: #000; border: none; border-radius: 4px; padding: 6px 14px; font-size: 12px; font-weight: 500; cursor: pointer; }
 .btn-cancel { background: transparent; border: 1px solid var(--border); color: var(--text-muted); border-radius: 4px; padding: 6px 12px; font-size: 12px; cursor: pointer; }
 
