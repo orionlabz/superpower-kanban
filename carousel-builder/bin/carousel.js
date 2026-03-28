@@ -74,5 +74,21 @@ function cmdStop() {
     process.exit(1);
   }
 }
-function cmdStatus() {}
+function cmdStatus() {
+  const pid = readPid();
+  if (!isRunning(pid)) {
+    console.log('carousel bridge: stopped');
+    return;
+  }
+  const ps = spawn('ps', ['-o', 'etime=', '-p', String(pid)], { stdio: ['ignore', 'pipe', 'ignore'] });
+  let etime = '';
+  ps.stdout.on('data', d => (etime += d));
+  ps.on('close', () => {
+    console.log(`carousel bridge: running`);
+    console.log(`  PID:    ${pid}`);
+    console.log(`  Port:   ${PORT}`);
+    console.log(`  Uptime: ${etime.trim()}`);
+    console.log(`  Logs:   ${LOG_FILE}`);
+  });
+}
 function cmdLogs() {}
