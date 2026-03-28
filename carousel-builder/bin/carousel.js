@@ -58,6 +58,21 @@ function isRunning(pid) {
   try { process.kill(pid, 0); return true; } catch { return false; }
 }
 
-function cmdStop() {}
+function cmdStop() {
+  const pid = readPid();
+  if (!isRunning(pid)) {
+    console.log('carousel bridge is not running.');
+    if (existsSync(PID_FILE)) unlinkSync(PID_FILE);
+    return;
+  }
+  try {
+    process.kill(pid, 'SIGTERM');
+    if (existsSync(PID_FILE)) unlinkSync(PID_FILE);
+    console.log(`carousel bridge stopped (PID ${pid}).`);
+  } catch (e) {
+    console.error(`Failed to stop: ${e.message}`);
+    process.exit(1);
+  }
+}
 function cmdStatus() {}
 function cmdLogs() {}
