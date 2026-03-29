@@ -2,44 +2,71 @@
 
 Editor visual local para criar carrosséis de Instagram no estilo editorial dark-luxury.
 
+**Versão:** 0.3.0
+
 ## Componentes
 
 | Componente | Descrição |
 |---|---|
 | MCP tools | `generate_carousel`, `refine_slide`, `brainstorm_ideas` — auto-registrados no Claude Code |
-| HTTP bridge | `localhost:3456` — alimenta o web app visual (start manual) |
-| Web app | `app/index.html` — editor de slides com preview em tempo real |
+| HTTP bridge | `localhost:37776` — alimenta o web app visual |
+| Web app | Editor de slides com preview em tempo real |
+| CLI `carousel` | Gerencia o bridge de qualquer diretório |
 
-## Setup
+## Instalação
+
+### Via plugin do Claude Code
+
+Após instalar o plugin, execute o hook de instalação uma vez:
 
 ```bash
-cd server && npm install
+bash ~/.claude/plugins/marketplaces/orionlabz/carousel-builder/hooks/post-install.sh
 ```
 
-## Usar o web app (editor visual)
+Isso instala as dependências do servidor (`npm install`) e cria o comando `carousel` em `~/.local/bin/carousel`.
 
-**Terminal 1 — bridge HTTP:**
+Se `~/.local/bin` não estiver no PATH, adicione ao seu `~/.zshrc` ou `~/.bashrc`:
+
 ```bash
-cd server && node mcp-server.js
+export PATH="$HOME/.local/bin:$PATH"
 ```
 
-**Terminal 2 (ou duplo-clique no Finder):**
+### Via curl (standalone)
+
 ```bash
-open app/index.html
+curl -fsSL https://raw.githubusercontent.com/orionlabz/orionlabz/main/carousel-builder/install.sh | bash
 ```
 
-O app detecta o bridge automaticamente (badge verde "⬤ Bridge conectado"). Se o bridge não estiver rodando, configure a API Key diretamente no formulário como fallback.
+## Atualização
+
+O sistema de plugins do Claude Code **não executa** scripts de lifecycle automaticamente. Após atualizar o plugin, rode manualmente:
+
+```bash
+bash ~/.claude/plugins/marketplaces/orionlabz/carousel-builder/hooks/post-update.sh
+```
+
+Isso reinstala as dependências com a versão atualizada.
+
+## CLI — carousel
+
+```bash
+carousel start    # sobe o bridge em background e abre o browser
+carousel stop     # encerra o bridge
+carousel status   # mostra PID, porta e uptime
+carousel logs     # tail em tempo real do log
+```
 
 ## Usar as ferramentas no Claude Code
 
-O plugin registra automaticamente o MCP server via `.mcp.json` ao ser instalado.
-
-Para registrar manualmente:
-```bash
-claude mcp add carousel-builder -s user -- node /caminho/absoluto/server/mcp-server.js --mcp
-```
+O MCP server é registrado automaticamente via `.mcp.json`. As ferramentas ficam disponíveis em toda sessão do Claude Code, independente do bridge estar rodando.
 
 Ferramentas disponíveis: `generate_carousel`, `refine_slide`, `brainstorm_ideas`.
+
+Para registrar manualmente:
+
+```bash
+claude mcp add carousel-builder -s user -- node ~/.claude/plugins/marketplaces/orionlabz/carousel-builder/server/mcp-server.js --mcp
+```
 
 ## Variáveis de ambiente
 
