@@ -1,7 +1,7 @@
 {
   "name": "carousel-builder",
-  "version": "0.2.0",
-  "description": "Local visual editor for creating dark-luxury editorial Instagram carousels. HTTP bridge on localhost:3456, MCP tools (generate_carousel, refine_slide, brainstorm_ideas) auto-registered.",
+  "version": "0.3.0",
+  "description": "Instagram carousel builder with AI generation, web editor, and CLI bridge management. HTTP bridge on localhost:37776, MCP tools (generate_carousel, refine_slide, brainstorm_ideas) auto-registered.",
   "author": {
     "name": "OrionLabz"
   },
