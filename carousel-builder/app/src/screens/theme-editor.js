@@ -24,7 +24,7 @@ export async function mountThemeEditor() {
   document.getElementById('app').innerHTML = `
     <div class="screen-theme">
       <header class="app-header">
-        <button class="btn-text" id="btn-back-theme">← Voltar</button>
+        <button class="btn-text" id="btn-back-theme"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg> Voltar</button>
         <span class="app-logo">Tema</span>
         <div style="display:flex;gap:8px;align-items:center;">
           ${S.context === 'project' ? '<button class="btn-text" id="btn-use-global">Usar tema global</button>' : ''}
@@ -56,6 +56,21 @@ export async function mountThemeEditor() {
                 <div class="brand-upload-row">
                   ${currentTheme.brand_logo_light ? `<img src="${currentTheme.brand_logo_light}" class="brand-preview brand-preview-dark" alt="Logo claro">` : '<div class="brand-preview-empty">sem logo</div>'}
                   <input type="file" accept="image/png,image/svg+xml" id="upload-logo-light" class="upload-input">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Username (rodapé)</label>
+                <input class="form-input" id="t-username" value="${esc(currentTheme.username || '')}" placeholder="@seuusuario">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Logo no rodapé</label>
+                <div style="display:flex;gap:8px;">
+                  <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--text-muted);">
+                    <input type="radio" name="footer-logo" id="footer-logo-dark" value="dark" ${(currentTheme.footer_logo_variant || 'dark') === 'dark' ? 'checked' : ''}> Escura
+                  </label>
+                  <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--text-muted);">
+                    <input type="radio" name="footer-logo" id="footer-logo-light" value="light" ${currentTheme.footer_logo_variant === 'light' ? 'checked' : ''}> Clara
+                  </label>
                 </div>
               </div>
               <div class="form-group">
@@ -152,6 +167,18 @@ export async function mountThemeEditor() {
       const v = parse(e.target.value);
       if (!isNaN(v) && v > 0) { currentTheme[key] = v; updatePreview(); }
     });
+  });
+
+  // Username
+  document.getElementById('t-username').addEventListener('input', e => {
+    currentTheme.username = e.target.value.toLowerCase();
+    e.target.value = currentTheme.username;
+    updatePreview();
+  });
+
+  // Footer logo variant
+  document.querySelectorAll('input[name="footer-logo"]').forEach(radio => {
+    radio.addEventListener('change', e => { currentTheme.footer_logo_variant = e.target.value; updatePreview(); });
   });
 
   // Brand uploads

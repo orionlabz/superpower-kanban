@@ -6,9 +6,9 @@ export function mountProject() {
   document.getElementById('app').innerHTML = `
     <div class="screen-project">
       <header class="app-header">
-        <button class="btn-text" id="btn-back">← Projetos</button>
+        <button class="btn-text" id="btn-back"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg> Projetos</button>
         <span id="project-name-header" class="project-header-name"></span>
-        <button class="btn-text" id="btn-project-settings">Tema ▾</button>
+        <button class="btn-text" id="btn-project-settings">Tema <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
       </header>
       <main class="project-main">
         <div class="project-top">
@@ -16,7 +16,7 @@ export function mountProject() {
           <button class="btn-primary" id="btn-new-carousel">+ Novo carrossel</button>
         </div>
         <div id="carousels-grid" class="projects-grid">
-          <div class="loading-inline">Carregando…</div>
+          <div class="loading-inline">Carregando</div>
         </div>
       </main>
     </div>`;
@@ -45,8 +45,8 @@ async function loadCarousels() {
         <div class="project-meta">${formatDate(c.updated_at)}</div>
       </div>
       <div class="project-card-footer">
-        <button class="btn-text btn-open-carousel" data-id="${c.id}">Editar →</button>
-        <button class="btn-icon btn-delete-carousel" data-id="${c.id}" title="Excluir">✕</button>
+        <button class="btn-text btn-open-carousel" data-id="${c.id}">Editar</button>
+        <button class="btn-icon btn-delete-carousel" data-id="${c.id}" title="Excluir"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
       </div>
     </div>`).join('');
 

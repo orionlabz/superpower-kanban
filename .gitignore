@@ -1,6 +1,10 @@
 .gitnexus
 .claude/skills/gitnexus/
 AGENTS.md
+node_modules/
+*.db-shm
+*.db-wal
+.playwright-mcp/
+.superpowers/
+task-viewer/.orphaned_at
 task-viewer/hooks/server/data/*.db
-task-viewer/hooks/server/data/*.db-wal
-task-viewer/hooks/server/data/*.db-shm

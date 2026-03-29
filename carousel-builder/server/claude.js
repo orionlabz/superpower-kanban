@@ -5,6 +5,15 @@ Crie carrosséis no estilo dark-luxury: direto, inteligente, provocativo mas ref
 Tom editorial, em português brasileiro.
 RESPONDA APENAS COM JSON VÁLIDO. Sem markdown, sem backticks, sem texto extra.`;
 
+const activeProcs = new Set();
+
+export function cleanup() {
+  for (const proc of activeProcs) {
+    try { proc.kill(); } catch {}
+  }
+  activeProcs.clear();
+}
+
 export function callClaude(userPrompt) {
   return new Promise((resolve, reject) => {
     const proc = spawn('claude', [
@@ -13,6 +22,8 @@ export function callClaude(userPrompt) {
       '--tools', '', '--no-session-persistence',
     ], { stdio: ['pipe', 'pipe', 'pipe'] });
 
+    activeProcs.add(proc);
+
     let stdout = '', stderr = '';
     proc.stdout.on('data', chunk => (stdout += chunk));
     proc.stderr.on('data', chunk => (stderr += chunk));
@@ -20,6 +31,7 @@ export function callClaude(userPrompt) {
     proc.stdin.end();
 
     proc.on('close', code => {
+      activeProcs.delete(proc);
       if (code !== 0) return reject(new Error(stderr || `claude exited with code ${code}`));
       try {
         const parsed = JSON.parse(stdout);

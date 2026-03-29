@@ -56,6 +56,10 @@ const SVG_X = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" strok
 const SVG_UPLOAD = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>`;
 const SVG_PNG = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`;
 const SVG_PDF = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>`;
+const SVG_CHEVRON_DOWN = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>`;
+const SVG_CHEVRON_UP   = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>`;
+const SVG_CHECK        = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`;
+const SVG_ARROW_RIGHT  = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>`;
 
 function showGeneratingScreen(topic) {
   clearInterval(_genTimer);
@@ -158,7 +162,7 @@ function startLoading(topic) {
           prev.classList.remove('active');
           prev.classList.add('done');
           const icon = prev.querySelector('.step-icon');
-          if (icon) icon.textContent = '✓';
+          if (icon) icon.innerHTML = SVG_CHECK;
         }
       }
       const cur = document.getElementById('step-' + i);
@@ -207,7 +211,7 @@ function renderSidebar() {
     iframe.addEventListener('load', () => shimmer.remove(), { once: true });
     const label = document.createElement('div');
     label.className = 'thumb-label';
-    label.textContent = (i + 1) + ' · ' + slide.template;
+    label.textContent = (i + 1) + ' / ' + slide.template;
     item.appendChild(wrap);
     item.appendChild(label);
     sidebar.appendChild(item);
@@ -287,11 +291,11 @@ function buildTemplatePicker(currentSlide) {
   const curLabel = document.createElement('span');
   curLabel.className = 'tpl-current-label';
   const curLayout = currentSlide.layout || 'a';
-  curLabel.textContent = `${TPL_LABELS[currentSlide.template] || currentSlide.template} · ${LAYOUT_NAMES[currentSlide.template]?.[curLayout] || curLayout.toUpperCase()}`;
+  curLabel.textContent = `${TPL_LABELS[currentSlide.template] || currentSlide.template} / ${LAYOUT_NAMES[currentSlide.template]?.[curLayout] || curLayout.toUpperCase()}`;
 
   const toggle = document.createElement('button');
   toggle.className = 'tpl-toggle';
-  toggle.textContent = '▾ Mudar';
+  toggle.innerHTML = `${SVG_CHEVRON_DOWN} Mudar`;
 
   hdr.appendChild(curLabel);
   hdr.appendChild(toggle);
@@ -318,7 +322,7 @@ function buildTemplatePicker(currentSlide) {
 
       const card = document.createElement('div');
       card.className = 'tpl-card' + (isActive ? ' active' : '');
-      card.title = `${TPL_LABELS[template]} · ${name}`;
+      card.title = `${TPL_LABELS[template]} / ${name}`;
 
       const thumb = document.createElement('div');
       thumb.className = 'tpl-thumb';
@@ -339,7 +343,7 @@ function buildTemplatePicker(currentSlide) {
         curLabel.textContent = `${TPL_LABELS[template]} · ${name}`;
         // Close grid
         grid.classList.remove('open');
-        toggle.textContent = '▾ Mudar';
+        toggle.innerHTML = `${SVG_CHEVRON_DOWN} Mudar`;
       };
 
       row.appendChild(card);
@@ -351,7 +355,7 @@ function buildTemplatePicker(currentSlide) {
 
   toggle.onclick = () => {
     const open = grid.classList.toggle('open');
-    toggle.textContent = open ? '▴ Fechar' : '▾ Mudar';
+    toggle.innerHTML = open ? `${SVG_CHEVRON_UP} Fechar` : `${SVG_CHEVRON_DOWN} Mudar`;
   };
 
   root.appendChild(grid);
@@ -440,7 +444,7 @@ function renderPanel() {
         : `<div class="drop-zone">
              <input type="file" accept="image/*" id="inp-img">
              <div class="drop-zone-icon">${SVG_UPLOAD}</div>
-             <div class="drop-zone-text">Clique para fazer upload<br>JPG · PNG · WEBP</div>
+             <div class="drop-zone-text">Clique para fazer upload<br>JPG / PNG / WEBP</div>
            </div>`
       }
       ${suggestions.length ? `<div class="img-suggestions-label">Sugestões de imagem</div>
@@ -472,7 +476,7 @@ function renderPanel() {
           </div>`
         ).join('')}
       </div>
-      ${(slide.list_items || []).length < 4 ? '<button class="btn-add-item" id="btn-add-list-item">+ Adicionar</button>' : ''}
+      ${(slide.list_items || []).length < 5 ? '<button class="btn-add-item" id="btn-add-list-item">+ Adicionar</button>' : ''}
     </div>`;
     html += `<div data-rich="conclusion_html"></div>`;
   }
@@ -513,7 +517,7 @@ function renderPanel() {
   }
 
   html += `<div class="refine-section">
-    <div class="field-label">✦ Refinar com IA</div>
+    <div class="field-label">Refinar com IA</div>
     <textarea id="refine-instr" class="field-textarea" placeholder="O que você quer mudar neste slide?" rows="3"></textarea>
     <div class="refine-actions">
       <button id="btn-refine-ok" class="btn-confirm">Refinar</button>
@@ -763,7 +767,7 @@ function showImgTransformOverlay() {
 
   const hint = document.createElement('div');
   hint.className = 'img-transform-hint';
-  hint.textContent = 'Arraste para mover · canto inferior direito para zoom';
+  hint.textContent = 'Arraste para mover / canto inferior direito para zoom';
 
   overlay.appendChild(img);
   overlay.appendChild(handle);
@@ -977,7 +981,7 @@ function setListItem(i, val) {
 }
 
 function addListItem() {
-  if ((S.slides[S.active].list_items || []).length >= 4) return;
+  if ((S.slides[S.active].list_items || []).length >= 5) return;
   S.slides[S.active].list_items = [...(S.slides[S.active].list_items || []), ''];
   renderPanel();
   renderPreview();
@@ -1088,7 +1092,7 @@ async function doRefine() {
   const instr = instrEl?.value.trim();
   if (!instr) return;
   const btn = document.getElementById('btn-refine-ok');
-  if (btn) { btn.textContent = '…'; btn.disabled = true; }
+  if (btn) { btn.textContent = 'Refinando'; btn.disabled = true; }
   try {
     const refined = await api.refine(S.slides[S.active], instr);
     const prevLayout = S.slides[S.active].layout;
@@ -1118,7 +1122,7 @@ export function mountEditor() {
         <div class="header-actions">
           <div id="save-indicator" class="save-indicator"><span class="save-indicator-dot"></span>Salvo</div>
           <div class="export-dropdown">
-            <button class="header-btn btn-export-toggle" id="btn-export-toggle">${SVG_DOWNLOAD} Exportar ▾</button>
+            <button class="header-btn btn-export-toggle" id="btn-export-toggle">${SVG_DOWNLOAD} Exportar ${SVG_CHEVRON_DOWN}</button>
             <div class="export-menu" id="export-menu">
               <div class="export-menu-item" id="menu-export-png">${SVG_PNG} PNG por slide</div>
               <div class="export-menu-divider"></div>
@@ -1194,7 +1198,7 @@ export function showNewCarouselModal() {
     <div class="modal-card">
       <div class="modal-header">
         <div class="modal-title">Novo carrossel</div>
-        <button class="header-btn" id="modal-close">×</button>
+        <button class="header-btn" id="modal-close">${SVG_X}</button>
       </div>
       <div class="modal-body">
         <div class="form-group">

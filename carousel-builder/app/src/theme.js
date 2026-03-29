@@ -53,6 +53,8 @@ export function defaultTheme() {
     brand_symbol: '⬥',
     nav_left: 'CATEGORIA',
     nav_right: 'SÉRIE',
+    username: '',
+    footer_logo_variant: 'dark',
   };
 }
 

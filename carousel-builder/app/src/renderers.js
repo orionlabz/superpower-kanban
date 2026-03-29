@@ -48,11 +48,13 @@ function navBar(t) {
 }
 
 function footerBar(t) {
-  const brand_symbol = t?.brand_symbol || '⬥';
-  const brand_name   = t?.brand_name   || 'Marca';
+  const logoVariant = t?.footer_logo_variant || 'dark';
+  const logoPath = logoVariant === 'light' ? t?.brand_logo_light : t?.brand_logo_dark;
+  const logoEl = logoPath ? `<img src="${logoPath}" style="height:22px;object-fit:contain;opacity:.5;" alt="">` : '';
+  const username = t?.username ? esc(t.username.toLowerCase()) : '';
   return `<div style="${UI(t)}display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:36px;">
-    <span style="font-size:28px;color:#252525;">${esc(brand_symbol)} ${esc(brand_name)}</span>
-    <span style="font-size:22px;letter-spacing:.14em;color:#252525;text-transform:uppercase;">${esc(brand_name.toUpperCase())}</span>
+    <div>${logoEl}</div>
+    <span style="font-size:22px;letter-spacing:.08em;color:#252525;">${username}</span>
   </div>`;
 }
 
@@ -161,21 +163,27 @@ export const RENDERERS = {
 
   dark: {
     a(slide, img, t) {
-      const items = (slide.list_items || []).map(item =>
-        `<div style="display:flex;gap:16px;margin-bottom:16px;">
-          <span style="${INT(t)}color:#555;font-size:${bs(t,36)}px;flex-shrink:0;">·</span>
-          <span style="${INT(t)}font-size:${bs(t,36)}px;color:#666;line-height:${lhB(t)};">${esc(item)}</span>
-         </div>`
+      const accent = t?.color_emphasis || '#CCFF00';
+      const bullet = `<svg width="11" height="11" viewBox="0 0 11 11" fill="${accent}" style="flex-shrink:0;"><rect width="11" height="11"/></svg>`;
+      const items = (slide.list_items || []).map((item, i, arr) =>
+        `<div style="display:flex;gap:28px;margin-bottom:${i === arr.length - 1 ? 8 : 32}px;align-items:center;">
+          ${bullet}
+          <span style="${INT(t)}font-size:${bs(t,34)}px;color:#777;line-height:${lhB(t)};">${esc(item)}</span>
+        </div>`
       ).join('');
       const body = h(slide.body_html || esc(slide.body || ''));
       const conclusion = h(slide.conclusion_html || esc(slide.conclusion || ''));
       return `<div style="width:1080px;height:1350px;background:#000;display:flex;flex-direction:column;padding:54px 76px 60px;">
-        ${navBar(t)}
-        <div style="${UI(t)}font-size:22px;letter-spacing:.18em;color:#333;text-transform:uppercase;margin-bottom:16px;">${esc(slide.section_number)}</div>
-        <div style="${PF(t)}font-size:${hs(t,62)}px;line-height:${lhH(t)};font-weight:400;color:#fff;margin-bottom:36px;">${esc(slide.section_title)}</div>
-        <div style="${INT(t)}font-size:${bs(t,36)}px;color:#666;line-height:${lhB(t)};margin-bottom:32px;">${body}</div>
-        <div style="margin-bottom:24px;">${items}</div>
-        <div style="${INT(t)}font-size:${bs(t,36)}px;color:#555;line-height:${lhB(t)};margin-bottom:auto;">${conclusion}</div>
+        <div style="${UI(t)}display:flex;align-items:center;gap:22px;font-size:22px;letter-spacing:.18em;color:#303030;text-transform:uppercase;margin-bottom:60px;">
+          <span>${esc(t?.nav_left || 'CATEGORIA')}</span>
+          <div style="flex:1;height:1px;background:#1e1e1e;"></div>
+          <span>${esc(t?.nav_right || 'SÉRIE')}</span>
+        </div>
+        <div style="${UI(t)}font-size:22px;letter-spacing:.18em;color:#2e2e2e;text-transform:uppercase;margin-bottom:16px;">${esc(slide.section_number)}</div>
+        <div style="${PF(t)}font-size:${hs(t,76)}px;line-height:${lhH(t)};font-weight:400;color:#fff;margin-bottom:44px;">${esc(slide.section_title)}</div>
+        <div style="${INT(t)}font-size:${bs(t,34)}px;color:#555;line-height:${lhB(t)};margin-bottom:64px;">${body}</div>
+        <div style="margin-bottom:auto;padding-left:48px;">${items}</div>
+        ${conclusion ? `<div style="${PF(t)}font-size:${hs(t,36)}px;color:#444;line-height:${lhH(t)};font-style:italic;padding-top:16px;border-top:1px solid #1a1a1a;">${conclusion}</div>` : ''}
         ${footerBar(t)}
       </div>`;
     },
@@ -217,9 +225,10 @@ export const RENDERERS = {
     },
 
     c(slide, img, t) {
+      const accentC = t?.color_emphasis || '#CCFF00';
       const items = (slide.list_items || []).map(item =>
-        `<div style="display:flex;gap:28px;margin-bottom:22px;align-items:baseline;">
-          <span style="${INT(t)}color:#555;font-size:${bs(t,36)}px;flex-shrink:0;">·</span>
+        `<div style="display:flex;gap:20px;margin-bottom:22px;align-items:center;">
+          <svg width="8" height="8" viewBox="0 0 8 8" fill="${accentC}" style="flex-shrink:0;"><rect width="8" height="8"/></svg>
           <span style="${INT(t)}font-size:${bs(t,36)}px;color:#666;line-height:${lhB(t)};">${esc(item)}</span>
          </div>`
       ).join('');

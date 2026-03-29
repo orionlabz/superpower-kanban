@@ -7,7 +7,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { handleRoute } from './routes.js';
 import { serveStorageFile } from './storage.js';
-import { generateCarousel, refineSlide, brainstormIdeas } from './claude.js';
+import { generateCarousel, refineSlide, brainstormIdeas, cleanup as cleanupClaude } from './claude.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const APP_DIR = resolve(__dirname, '../app/dist');
@@ -48,7 +48,8 @@ async function serveStatic(req, res) {
   try {
     const data = await readFile(filePath);
     cors(res);
-    res.writeHead(200, { 'Content-Type': MIME[extname(filePath)] || 'application/octet-stream' });
+    const headers = { 'Content-Type': MIME[extname(filePath)] || 'application/octet-stream', 'Cache-Control': 'no-cache, no-store, must-revalidate' };
+    res.writeHead(200, headers);
     res.end(data);
     return true;
   } catch { return false; }
@@ -77,7 +78,7 @@ async function handleRequest(req, res) {
     try {
       const data = await readFile(indexPath);
       cors(res);
-      res.writeHead(200, { 'Content-Type': 'text/html' });
+      res.writeHead(200, { 'Content-Type': 'text/html', 'Cache-Control': 'no-cache, no-store, must-revalidate' });
       res.end(data);
     } catch { json(res, { error: 'Not found' }, 404); }
   }
@@ -86,9 +87,20 @@ async function handleRequest(req, res) {
 // ─── HTTP mode ────────────────────────────────────────────────────────────────
 
 if (!IS_MCP) {
-  createServer(handleRequest).listen(PORT, () => {
+  const httpServer = createServer(handleRequest);
+  httpServer.listen(PORT, () => {
     console.log(`Carousel Builder bridge running on http://localhost:${PORT}`);
   });
+
+  function shutdown(signal) {
+    console.log(`\n[bridge] ${signal} received — shutting down…`);
+    cleanupClaude();
+    httpServer.close(() => process.exit(0));
+    setTimeout(() => process.exit(1), 5000).unref();
+  }
+
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
 }
 
 // ─── MCP mode ─────────────────────────────────────────────────────────────────
