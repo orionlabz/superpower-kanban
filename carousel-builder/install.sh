@@ -30,6 +30,10 @@ else
   PLUGIN_ROOT="$INSTALL_DIR/$PLUGIN_SUBDIR"
 fi
 
+echo "Installing server dependencies..."
+npm install --production --prefix "$PLUGIN_ROOT/server"
+echo "Dependencies installed."
+
 CLI_SRC="$PLUGIN_ROOT/bin/carousel.js"
 chmod +x "$CLI_SRC"
 mkdir -p "$LINK_DIR"

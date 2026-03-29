@@ -8,6 +8,10 @@ CLI_SRC="$PLUGIN_ROOT/bin/carousel.js"
 LINK_DIR="$HOME/.local/bin"
 LINK_PATH="$LINK_DIR/carousel"
 
+echo "Installing server dependencies..."
+npm install --production --prefix "$PLUGIN_ROOT/server"
+echo "Dependencies installed."
+
 chmod +x "$CLI_SRC"
 mkdir -p "$LINK_DIR"
 
